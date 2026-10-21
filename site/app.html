@@ -596,6 +596,7 @@ int main(void) {
     return { json: new TextDecoder().decode(new Uint8Array(wasm.memory.buffer, out, n)), n };
   }
   async function drawScheme(i) {
+    const task = state.tasks[i];
     const box = document.querySelector(`.scheme-box[data-scheme="${i}"]`);
     const note = document.querySelector(`.scheme-actions [data-draw="${i}"]`)?.parentElement.querySelector(".scheme-note");
     if (!box) return;
@@ -616,6 +617,7 @@ int main(void) {
         if (note) note.textContent = "ошибка";
         return;
       }
+      if (state.tasks[i] !== task || !box.isConnected) return;
       const f = j.files[0];
       box.innerHTML = f.sheets[0];
       if (note) note.textContent = `${f.sheets.length} лист${f.sheets.length === 1 ? "" : "а"} · ГОСТ 19.701-90`;
@@ -679,6 +681,9 @@ int main(void) {
   }
   async function runCode(i, auto) {
     const t = state.tasks[i];
+    // проект могли заменить (?project=) пока шёл запуск — ответ старой
+    // задачи не должен переписать вывод новой
+    const stale = () => state.tasks[i] !== t;
     const out = document.querySelector(`[data-runout="${i}"]`);
     const st = document.querySelector(`[data-run="${i}"] .runstate`);
     if (!out) return;
@@ -713,6 +718,7 @@ int main(void) {
       if (st) st.textContent = "ошибка";
       return;
     }
+    if (stale()) return;
     out.textContent = j.stdout || (j.stderr ? j.stderr : "(программа ничего не вывела)");
     // вывод программы — это и есть раздел «Вывод» в отчёте
     state.tasks[i].output = out.textContent;
