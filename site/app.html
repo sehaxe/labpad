@@ -114,6 +114,7 @@
   .shot{border:1px solid var(--paper-line);padding:2mm;max-width:100%;font:10pt var(--mono);color:#777}
   .shot img{display:block;max-width:100%;max-height:60mm}
   .shots.over{outline:2px dashed var(--accent);outline-offset:3px}
+  @media print{ .slot,.shots .slot{display:none!important} details.manual > *{display:block!important} }
   .shot-add{cursor:pointer}
   .slot{border:1px dashed var(--paper-line);padding:9mm 4mm;text-align:center;color:#888;font-size:10pt;margin:2mm 0}
   .field{margin-bottom:10px}
@@ -136,7 +137,7 @@
   .runout.err{color:#ffb4b4}
   .manual{margin-top:1mm}
   .manual summary{font:8.5pt var(--mono);color:#888;cursor:pointer;margin-bottom:1mm}
-  @media print{ .run{display:none!important} .manual{display:block!important} .manual summary{display:none!important} .out{display:block!important} }
+  @media print{ .print-empty,.empty{display:none!important} .run{display:none!important} .manual{display:block!important} .manual summary{display:none!important} .out{display:block!important} }
   .scheme-actions{display:flex;align-items:center;gap:3mm;margin:1mm 0 2mm;font-family:var(--mono);font-size:9pt;color:#777}
   .mini{font:9pt var(--mono);padding:1mm 2.5mm;border:1px solid #ccc;background:#fff;border-radius:2px;cursor:pointer;color:#333}
   .mini:hover{border-color:#888}
@@ -151,9 +152,12 @@
     header,aside,.status{display:none!important}
     .layout{display:block;height:auto}
     .stage{padding:0;background:#fff;overflow:visible}
-    .sheet{width:210mm;min-height:297mm;box-shadow:none;margin:0;page-break-after:always;padding:20mm 10mm 20mm 20mm}
+    .sheet{width:210mm;min-height:296mm;box-shadow:none;margin:0;page-break-after:always;padding:20mm 10mm 20mm 20mm}
     .sheet:last-child{page-break-after:auto}
     .slot{border-color:#bbb}
+    .sec{page-break-inside:auto}
+    .blk,.shot,.scheme-box{page-break-inside:avoid}
+    h2,h3{page-break-after:avoid}
     html,body{background:#fff}
   }
   @media (max-width:1100px){
@@ -161,6 +165,10 @@
     aside.right{display:none}
   }
   @media (max-width:760px){
+    header{gap:8px;padding:0 10px}
+    .pname{display:none}
+    .pw{display:none}
+    #print{padding:6px 10px;font-size:11px}
     body{overflow:auto}
     .layout{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:auto}
     aside.left{border-right:0;border-bottom:1px solid var(--line);max-height:170px}
@@ -266,8 +274,51 @@
     tasks: [],
   };
 
+  const DEMO_CODE = `#include <stdio.h>
+#include <math.h>
+#define N 100
+
+int main(void) {
+  int n, a[N], sum = 0;
+  printf("Введите количество элементов: ");
+  while (scanf("%d", &n) != 1 || n < 1 || n > N) {
+    printf("Неверное число, повторите: ");
+    while (getchar() != '\\n');
+  }
+  for (int i = 0; i < n; i++) {
+    printf("a[%d] = ", i);
+    scanf("%d", &a[i]);
+  }
+  for (int i = 0; i < n; i++) sum += a[i];
+  printf("Сумма: %d\\n", sum);
+  return 0;
+}`;
+  function demoProject() {
+    return {
+      name: "Лабораторная работа № 1",
+      meta: {
+        min: "Министерство образования Республики Беларусь",
+        city: "г. Минск",
+        inst: "Государственное учреждение образования",
+        vuz: "«Белорусский государственный университет информатики и радиоэлектроники»",
+        labnum: "1", topic: "Одномерные массивы",
+        course: "Основы алгоритмизации и программирования",
+        variant: "7", group: "658302",
+        name: "Иванов И. И.", teacher: "Селезнев А. И.", place: "Минск 2026",
+        goal: "Цель работы — научиться обрабатывать одномерные массивы и оформлять блок-схемы по ГОСТ 19.701-90.",
+      },
+      tasks: [{
+        condition: "Ввести количество элементов массива (1..100) с проверкой ввода, заполнить массив, вычислить сумму элементов и вывести результат.",
+        code: DEMO_CODE,
+        stdin: "4\n3 8 -2 7\n",
+        output: "Введите количество элементов: 4\na[0] = 3\na[1] = 8\na[2] = -2\na[3] = 7\nСумма: 16",
+        shots: [], show: {},
+      }],
+    };
+  }
   let state = load();
   function load() {
+    if (new URLSearchParams(location.search).has("demo")) return structuredClone(demoProject());
     try {
       const raw = localStorage.getItem(KEY);
       if (!raw) return structuredClone(seed);
@@ -361,8 +412,8 @@
             <button class="del" title="Удалить задание">×</button>
           </div>
         </div>
-        <h3>Описание задания</h3>
-        <p class="cond" contenteditable="true" data-i="${i}" data-f="condition" data-ph="Вставь описание задания…">${esc(t.condition || "")}</p>
+        <div class="blk" data-blk="desc"><h3>Описание задания</h3>
+        <p class="cond" contenteditable="true" data-i="${i}" data-f="condition" data-ph="Вставь описание задания…">${esc(t.condition || "")}</p></div>
         <div class="blk" data-blk="code"><h3>Код программы</h3>
         <div class="code" contenteditable="true" data-i="${i}" data-f="code" data-ph="#include <stdio.h>&#10;&#10;int main(void) {&#10;    return 0;&#10;}">${esc(t.code || "")}</div></div>
         <div class="blk" data-blk="output"><h3>Вывод программы</h3>
@@ -466,6 +517,10 @@
       const out = document.querySelector(`[data-runout="${i}"]`);
       if (t.code && t.code.trim() && out && !out.textContent.trim() && t.autoRun !== false) {
         setTimeout(() => runCode(i, true), 120);
+      }
+      const box = document.querySelector(`.scheme-box[data-scheme="${i}"]`);
+      if (t.code && t.code.trim() && box && !box.querySelector("svg")) {
+        setTimeout(() => drawScheme(i), 200);
       }
     });
     renderTree();
@@ -680,7 +735,28 @@
     drawTimer = setTimeout(() => drawScheme(i), 700);
   }
 
-  $("#print").onclick = () => window.print();
+  /* Печать: пустые блоки не печатаем, «или вставить вручную» — раскрываем,
+     чтобы вывод, посчитанный облаком, попал в отчёт. */
+  function preparePrint() {
+    document.querySelectorAll("details").forEach((d) => { d.open = true; });
+    document.querySelectorAll(".task .blk").forEach((blk) => {
+      const kind = blk.dataset.blk;
+      let empty = false;
+      if (kind === "code" || kind === "output") {
+        const el = blk.querySelector(".code, .out");
+        empty = !el || !el.textContent.trim();
+      } else if (kind === "shots") {
+        empty = !blk.querySelector(".shot img");
+      } else if (kind === "scheme") {
+        empty = !blk.querySelector("svg");
+      } else if (kind === "desc") {
+        empty = !blk.querySelector(".cond")?.textContent.trim();
+      }
+      blk.classList.toggle("print-empty", empty);
+    });
+  }
+  window.addEventListener("beforeprint", preparePrint);
+  $("#print").onclick = () => { preparePrint(); window.print(); };
 
   renderTitle();
   renderTasks();

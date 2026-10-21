@@ -1,0 +1,64 @@
+name: site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: runner tests
+        working-directory: runner
+        run: cargo test --quiet
+
+      - name: html sanity
+        run: |
+          set -e
+          node - <<'JS'
+          const fs = require('fs');
+          for (const f of ['site/index.html', 'site/app.html']) {
+            const html = fs.readFileSync(f, 'utf8');
+            const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+            for (const s of scripts) new Function(s); // синтаксис
+            if (!html.includes('<title>')) throw new Error(f + ': нет title');
+          }
+          const idx = fs.readFileSync('site/index.html', 'utf8');
+          for (const tag of ['og:title', 'og:image', 'og:description', 'twitter:card', 'canonical', 'application/ld+json']) {
+            if (!idx.includes(tag)) throw new Error('index.html: нет ' + tag);
+          }
+          for (const f of ['site/og.png', 'site/gostpadi.wasm', 'site/sitemap.xml', 'site/robots.txt']) {
+            if (!fs.existsSync(f) || fs.statSync(f).size === 0) throw new Error('нет ' + f);
+          }
+          console.log('html ok');
+          JS
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: nojekyll
+        run: touch site/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
