@@ -157,6 +157,9 @@
     .slot{border-color:#bbb}
     .sec{page-break-inside:auto}
     .blk,.shot,.scheme-box{page-break-inside:avoid}
+    /* схема — на своей странице и во всю её высоту: иначе высокая схема
+       вписывается в 150 мм и кегль становится нечитаемым */
+    .scheme-box svg{max-height:232mm;width:auto;max-width:100%}
     h2,h3{page-break-after:avoid}
     html,body{background:#fff}
   }
@@ -358,17 +361,12 @@ int main(void) {
   const FIELDS = ["min", "city", "inst", "vuz", "labnum", "topic", "course", "variant", "group", "name", "teacher", "place"];
   function renderTitle() {
     const m = state.meta;
-    set("t-min", m.min);
-    set("t-city", m.city);
-    set("t-inst", m.inst);
-    set("t-vuz", m.vuz);
-    set("t-lab", `Лабораторная работа № ${m.labnum}`);
-    set("t-topic", m.topic ? `«${m.topic}»` : "«Тема»");
-    set("t-course", `по дисциплине «${m.course}»`);
-    set("t-group", [m.variant ? `Вариант ${m.variant}` : "", `Учебная группа ${m.group}`].filter(Boolean).join(" · "));
-    set("t-name", m.name);
-    set("t-teacher", m.teacher);
-    set("t-place", m.place);
+    // титул правится кликом прямо на листе: данные — в data-field
+    document.querySelectorAll(".tit .ed[data-field]").forEach((el) => {
+      if (document.activeElement === el) return;
+      const v = m[el.dataset.field];
+      el.textContent = v === undefined || v === "" ? "—" : v;
+    });
     $("#pname").value = state.name;
     for (const k of FIELDS) {
       const f = document.getElementById("f-" + k);
@@ -760,6 +758,21 @@ int main(void) {
 
   renderTitle();
   renderTasks();
+
+  /* проект из файла: app.html?project=lab2.json — отчёт открывается
+     готовым, без локального localStorage (для показа/печати) */
+  const projectUrl = new URLSearchParams(location.search).get("project");
+  if (projectUrl) {
+    fetch(projectUrl)
+      .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then((p) => {
+        state = { ...structuredClone(seed), ...p, meta: { ...seed.meta, ...(p.meta || {}) } };
+        renderTitle();
+        renderTasks();
+        $("#msg").textContent = "проект загружен";
+      })
+      .catch((e) => { $("#msg").textContent = "проект не загрузился: " + e.message; });
+  }
 </script>
 </body>
 </html>
