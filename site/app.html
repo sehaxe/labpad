@@ -573,20 +573,39 @@
   }
   /* ---------- запуск C: локальный runner, иначе облако (Judge0) ---------- */
   const RUNNER = "http://127.0.0.1:8788";
-  const CLOUD = "https://ce.judge0.com/submissions?base64_encoded=false&wait=true";
+  const CLOUD = "https://ce.judge0.com/submissions?base64_encoded=true&wait=true";
+  // Judge0 принимает и отдаёт только base64 — иначе русские строки в printf
+  // ломают запрос («cannot be converted to UTF-8»).
+  const b64 = (str) => {
+    const bytes = new TextEncoder().encode(str);
+    let bin = "";
+    for (const b of bytes) bin += String.fromCharCode(b);
+    return btoa(bin);
+  };
+  const unb64 = (str) => {
+    if (!str) return "";
+    const bin = atob(str);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  };
   async function runCloud(code, stdin) {
     const r = await fetch(CLOUD, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ source_code: code, language_id: 50, stdin }),
+      body: JSON.stringify({
+        source_code: b64(code),
+        language_id: 50,
+        stdin: b64(stdin),
+      }),
     });
     if (!r.ok) throw new Error("облако ответило " + r.status);
     const j = await r.json();
-    const compile = j.compile_output || (j.status && j.status.id === 6 ? j.message : "");
+    const compile = unb64(j.compile_output) || (j.status && j.status.id === 6 ? unb64(j.message) : "");
     return {
       ok: !compile && j.status && j.status.id === 3,
-      stdout: j.stdout || "",
-      stderr: j.stderr || "",
+      stdout: unb64(j.stdout),
+      stderr: unb64(j.stderr),
       compile,
       status: j.status?.description || "",
       ms: Math.round((parseFloat(j.time) || 0) * 1000),
