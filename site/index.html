@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="ru" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>labpad — отчёт по лабораторной без боли</title>
+<meta name="description" content="labpad собирает отчёт по лабораторной: условие, блок-схема из кода, код и результат — в один PDF по ГОСТ. Всё в браузере, без сервера.">
+<meta name="theme-color" content="#fdfcfc">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root{
+    color-scheme: light;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+    --bg:#fdfcfc; --soft:#f8f7f7; --card:#f1eeee;
+    --ink:#201d1d; --ink-deep:#0f0000; --body:#424245; --mute:#646262; --faint:#9a9898;
+    --line:rgba(15,0,0,.12); --line2:#646262;
+    --dark:#201d1d; --dark2:#302c2c; --on-dark:#fdfcfc; --on-dark-mute:#9a9898;
+    --paper:#ffffff; --paper-ink:#201d1d; --paper-line:rgba(15,0,0,.16);
+    --accent:#007aff;
+    --r:4px;
+  }
+  html[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#161313; --soft:#1d1919; --card:#241f1f;
+    --ink:#fdfcfc; --ink-deep:#ffffff; --body:#c9c5c5; --mute:#9a9898; --faint:#6e6e73;
+    --line:rgba(253,252,252,.12); --line2:#9a9898;
+    --dark:#0f0d0d; --dark2:#1b1818; --on-dark:#fdfcfc; --on-dark-mute:#9a9898;
+    --paper:#fdfcfc; --paper-ink:#201d1d; --paper-line:rgba(15,0,0,.16);
+    --accent:#4da3ff;
+  }
+  @media (prefers-color-scheme: dark){
+    html[data-theme="auto"]{
+      color-scheme: dark;
+      --bg:#161313; --soft:#1d1919; --card:#241f1f;
+      --ink:#fdfcfc; --ink-deep:#ffffff; --body:#c9c5c5; --mute:#9a9898; --faint:#6e6e73;
+      --line:rgba(253,252,252,.12); --line2:#9a9898;
+      --dark:#0f0d0d; --dark2:#1b1818; --on-dark:#fdfcfc; --on-dark-mute:#9a9898;
+      --paper:#fdfcfc; --paper-ink:#201d1d; --paper-line:rgba(15,0,0,.16);
+      --accent:#4da3ff;
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.5 var(--mono);
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  }
+  a{color:inherit;text-decoration:none}
+  a:hover{text-decoration:underline;text-underline-offset:3px}
+  .wrap{max-width:960px;margin:0 auto;padding:0 24px}
+  header{border-bottom:1px solid var(--line)}
+  header .wrap{height:56px;display:flex;align-items:center;gap:16px}
+  .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;letter-spacing:-.01em}
+  .logo .mark{display:inline-block;width:10px;height:10px;border:1px solid var(--ink);border-radius:2px;position:relative}
+  .logo .mark:before{content:"";position:absolute;left:2px;top:2px;width:4px;height:4px;background:var(--ink)}
+  .ver{font:600 11px var(--mono);color:var(--mute);border:1px solid var(--line);border-radius:var(--r);padding:2px 6px}
+  nav{display:flex;align-items:center;gap:18px;margin-left:auto;font-size:14px;color:var(--mute)}
+  nav a{color:var(--mute)}
+  nav a:hover{color:var(--ink);text-decoration:none}
+  .themebtn{background:none;border:1px solid transparent;color:var(--mute);font:16px var(--mono);cursor:pointer;padding:4px 6px;border-radius:var(--r)}
+  .themebtn:hover{color:var(--ink);border-color:var(--line)}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    height:36px;padding:0 20px;border-radius:var(--r);border:1px solid transparent;
+    font:500 14px/1 var(--mono);cursor:pointer;background:none;color:var(--ink);
+    transition:border-color .18s ease, background-color .18s ease;
+  }
+  .btn-p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .btn-p:hover{background:var(--ink);color:var(--bg);text-decoration:none;border-color:var(--line2)}
+  .btn-p:active{background:var(--ink-deep)}
+  .btn .short{display:none}
+  @media (max-width:460px){ .btn .long{display:none} .btn .short{display:inline} }
+  .btn-g{background:transparent;color:var(--ink);border-color:var(--line2)}
+  .btn-g:hover{background:var(--soft);text-decoration:none}
+  main{display:block}
+  .hero{display:grid;grid-template-columns:1.02fr .98fr;gap:40px;align-items:center;padding:72px 0 64px}
+  .eyebrow{font-size:13px;color:var(--mute);margin:0 0 14px}
+  h1{font-size:38px;line-height:1.28;letter-spacing:-.02em;margin:0 0 18px;font-weight:700}
+  .lede{font-size:16px;line-height:1.6;color:var(--body);margin:0 0 26px;max-width:44ch}
+  .actions{display:flex;gap:10px;flex-wrap:wrap}
+  .hint{font-size:13px;color:var(--faint);margin-top:14px}
+  .stage{
+    background:var(--dark);border:1px solid var(--line);border-radius:var(--r);
+    padding:14px;min-height:420px;display:flex;flex-direction:column;gap:10px;
+  }
+  .stage-bar{display:flex;align-items:center;gap:8px;color:var(--on-dark-mute);font-size:12px}
+  .dot{width:8px;height:8px;border-radius:50%;border:1px solid var(--on-dark-mute);display:inline-block}
+  .stage-cmd{color:var(--on-dark);font-size:13px;padding:6px 8px;border:1px solid rgba(253,252,252,.14);border-radius:var(--r);background:var(--dark2)}
+  .stage-cmd .ok{color:#30d158}
+  .sheet{
+    background:var(--paper);color:var(--paper-ink);border-radius:2px;
+    margin:2px auto 0;width:100%;max-width:330px;padding:22px 24px 18px;
+    min-height:330px;display:flex;flex-direction:column;
+    animation:sheetIn .5s ease both;
+  }
+  @keyframes sheetIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .sheet .uni{font-size:9px;letter-spacing:.08em;text-align:center;color:var(--paper-ink);opacity:.72;line-height:1.5}
+  .sheet .ttl{font-size:15px;font-weight:700;text-align:center;margin:16px 0 2px;letter-spacing:.04em}
+  .sheet .sub{font-size:10px;text-align:center;color:var(--paper-ink);opacity:.7}
+  .sheet .meta{margin:16px 0 0;font-size:10px;line-height:1.9;border-top:1px solid var(--paper-line);padding-top:10px}
+  .sheet .meta b{font-weight:500}
+  .sheet .scheme{margin-top:auto;padding-top:12px;border-top:1px solid var(--paper-line)}
+  .sheet .scheme svg{display:block;width:100%;height:auto}
+  .sheet .scheme path{stroke:var(--paper-ink);stroke-width:1.1;fill:none;stroke-dasharray:120;stroke-dashoffset:120;animation:draw 1.3s .3s ease forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .sheet .scheme rect,.sheet .scheme ellipse{fill:none;stroke:var(--paper-ink);stroke-width:1.1;animation:fade .4s .85s ease both}
+  .sheet .scheme text{fill:var(--paper-ink);font:5.6px var(--mono)}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  section{padding:64px 0;border-top:1px solid var(--line)}
+  h2{font-size:16px;font-weight:700;margin:0 0 8px}
+  .sechead{display:flex;align-items:baseline;gap:12px;margin-bottom:22px}
+  .sechead .tag{font-size:13px;color:var(--faint)}
+  .sechead h2{margin:0}
+  .rows{margin:0;padding:0;list-style:none}
+  .row{display:grid;grid-template-columns:120px 1fr;gap:14px;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
+  .row:last-child{border-bottom:0}
+  .row .marker{color:var(--mute)}
+  .row b{font-weight:500}
+  .row span{color:var(--body)}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .step{padding:22px 20px 22px 0;border-right:1px solid var(--line)}
+  .step:last-child{border-right:0;padding-right:0}
+  .step .n{font-size:12px;color:var(--faint);margin-bottom:10px}
+  .step h3{font-size:15px;margin:0 0 8px;font-weight:700}
+  .step p{margin:0;font-size:14px;line-height:1.6;color:var(--body)}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
+  .col h3{font-size:15px;margin:0 0 8px}
+  .col p{margin:0 0 14px;color:var(--body);font-size:14px;line-height:1.65}
+  .codewrap{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;font-size:13px;color:var(--ink);overflow:auto}
+  .codewrap .c{color:var(--mute)}
+  .codewrap .k{color:var(--accent)}
+  .cta{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:56px 0}
+  .cta p{margin:0;color:var(--body);font-size:14px}
+  footer{border-top:1px solid var(--line);padding:26px 0 44px;color:var(--mute);font-size:13px}
+  footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  footer .links{display:flex;gap:18px}
+  footer .links a:hover{color:var(--ink);text-decoration:none}
+  .reveal{opacity:0;transform:translateY(8px)}
+  .reveal.in{opacity:1;transform:none;transition:opacity .45s ease,transform .45s ease}
+  @media (prefers-reduced-motion: reduce){
+    .reveal,.sheet,.sheet .scheme path,.sheet .scheme rect,.sheet .scheme ellipse{animation:none;opacity:1;transform:none;stroke-dashoffset:0}
+    html{scroll-behavior:auto}
+  }
+  @media (max-width:900px){
+    .hero{grid-template-columns:1fr;gap:28px;padding:44px 0 40px}
+    h1{font-size:30px}
+    .steps{grid-template-columns:1fr}
+    .step{border-right:0;border-bottom:1px solid var(--line);padding:18px 0}
+    .step:last-child{border-bottom:0}
+    .cols{grid-template-columns:1fr}
+    .row{grid-template-columns:96px 1fr}
+    section{padding:44px 0}
+    nav{gap:10px;font-size:13px;flex-wrap:nowrap}
+    .btn{white-space:nowrap;padding:0 12px}
+    nav .navlink{display:none}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="logo" href="./"><span class="mark"></span>labpad</a>
+    <span class="ver">alpha</span>
+    <nav>
+      <a class="navlink" href="#what">Что внутри</a>
+      <a class="navlink" href="#how">Как работает</a>
+      <a class="navlink" href="#typst">Typst</a>
+      <a class="navlink" href="https://sehaxe.github.io/gostpadi/">gostpadi</a>
+      <button class="themebtn" id="theme" title="Тема: авто" aria-label="Переключить тему">◐</button>
+      <a class="btn btn-p" href="./app.html"><span class="long">Открыть редактор</span><span class="short">Открыть</span></a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section class="hero" style="border:0">
+      <div class="reveal">
+        <p class="eyebrow">[+] отчёт по лабораторной</p>
+        <h1>Отчёт по лабе —<br>за пару минут</h1>
+        <p class="lede">
+          Условие, блок-схема из кода, код и результат — на одном листе А4.
+          Схема приезжает из gostpadi, вёрстка собирается в Typst, PDF скачивается прямо из браузера.
+        </p>
+        <div class="actions">
+          <a class="btn btn-p" href="./app.html">Собрать отчёт</a>
+          <a class="btn btn-g" href="#how">Как это работает</a>
+        </div>
+        <p class="hint">Всё локально: данные не уходят на сервер.</p>
+      </div>
+
+      <div class="stage reveal" aria-hidden="true">
+        <div class="stage-bar"><span class="dot"></span><span>labpad</span><span style="margin-left:auto">отчёт.typ</span></div>
+        <div class="stage-cmd"><span style="color:var(--on-dark-mute)">$</span> labpad build report.json <span class="ok">→ report.pdf</span></div>
+        <div class="sheet">
+          <div class="uni">МИНИСТЕРСТВО НАУКИ И ВЫСШЕГО ОБРАЗОВАНИЯ<br>КАФЕДРА ИНФОРМАТИКИ</div>
+          <div class="ttl">ОТЧЁТ</div>
+          <div class="sub">по лабораторной работе № 3</div>
+          <div class="meta">
+            <b>Студент:</b> Иванов И. И.<br>
+            <b>Группа:</b> ИС-21<br>
+            <b>Вариант:</b> 7<br>
+            <b>Дата:</b> 21.10.2026
+          </div>
+          <div class="scheme">
+            <svg viewBox="0 0 220 108" role="img" aria-label="Блок-схема">
+              <ellipse cx="110" cy="10" rx="22" ry="7"></ellipse>
+              <text x="110" y="12" text-anchor="middle">начало</text>
+              <path d="M110 17 L110 27"></path>
+              <rect x="56" y="27" width="108" height="14"></rect>
+              <text x="110" y="36" text-anchor="middle">int n; float s = 0;</text>
+              <path d="M110 41 L110 49"></path>
+              <path d="M78 49 L142 63 L110 77 L46 63 Z"></path>
+              <text x="110" y="64" text-anchor="middle">i &lt; n</text>
+              <path d="M142 63 L196 63 L196 86 L110 86"></path>
+              <path d="M110 77 L110 88"></path>
+              <ellipse cx="110" cy="95" rx="22" ry="7"></ellipse>
+              <text x="110" y="97" text-anchor="middle">конец</text>
+              <text x="163" y="59" font-size="5">нет</text>
+              <text x="116" y="82" font-size="5">да</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="what">
+      <div class="sechead"><h2>Что попадает в отчёт</h2><span class="tag">одна карточка = одно задание</span></div>
+      <ul class="rows">
+        <li class="row"><span class="marker">[+]</span><div><b>Условие</b> — <span>вставляешь текст из методички, он ложится на лист без правок.</span></div></li>
+        <li class="row"><span class="marker">[+]</span><div><b>Блок-схема</b> — <span>генерится из кода тем же движком, что в gostpadi: ГОСТ 19.701-90, вектор.</span></div></li>
+        <li class="row"><span class="marker">[+]</span><div><b>Код</b> — <span>с подсветкой C, переносами по ширине листа и нумерацией строк по желанию.</span></div></li>
+        <li class="row"><span class="marker">[+]</span><div><b>Результат</b> — <span>скриншот консоли, вставляется перетаскиванием.</span></div></li>
+      </ul>
+    </section>
+
+    <section id="how">
+      <div class="sechead"><h2>Как это работает</h2><span class="tag">три шага, без установки</span></div>
+      <div class="steps">
+        <div class="step reveal"><div class="n">01</div><h3>Вставь код</h3><p>Код задания — в карточку. Схема перерисуется сама, если поправить код.</p></div>
+        <div class="step reveal"><div class="n">02</div><h3>Собери лист</h3><p>Титул, условие, схема, код и результат ложатся на А4 по ГОСТ.</p></div>
+        <div class="step reveal"><div class="n">03</div><h3>Скачай PDF</h3><p>Typst компилирует в браузере: вектор, шрифт, поля — как в типографии.</p></div>
+      </div>
+    </section>
+
+    <section id="typst">
+      <div class="sechead"><h2>Почему Typst</h2><span class="tag">а не Word</span></div>
+      <div class="cols">
+        <div class="col reveal">
+          <h3>[+] Поля и шрифт по ГОСТ</h3>
+          <p>Левое 20 мм, правое 10 мм, полуторный интервал, Times-совместимый шрифт. Один шаблон — все лабы семестра.</p>
+          <h3>[+] Схемы — вектор</h3>
+          <p>SVG из gostpadi вставляется в PDF без растра: линии и текст остаются резкими на любом зуме и на печати.</p>
+        </div>
+        <div class="col reveal">
+          <h3>[+] Никакой возни с колонтитулами</h3>
+          <p>Нумерация страниц, титульник и разрывы — в шаблоне. Ты правишь данные, а не оформление.</p>
+          <h3>[+] Один шаблон для людей и агентов</h3>
+          <p>Тот же <code>.typ</code> собирается в PDF из браузера и из CLI: результат идентичный.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sechead"><h2>Связка с gostpadi</h2><span class="tag">один движок схем</span></div>
+      <p style="color:var(--body);max-width:62ch;margin:0 0 16px">
+        labpad не рисует схемы сам: он просит их у gostpadi — того же движка, что на сайте и в CLI.
+        Правка кода в карточке перерисовывает схему, не покидая редактор.
+      </p>
+      <div class="codewrap"><span class="c"># из карточки задания</span><br><span class="k">labpad</span> build report.json -o report.pdf<br><span class="c"># схема берётся из gostpadi, дальше — typst</span></div>
+    </section>
+
+    <section class="cta" style="border-top:1px solid var(--line)">
+      <div>
+        <h2 style="margin-bottom:6px">Готов собрать первую лабу?</h2>
+        <p>Редактор открывается в браузере, ничего ставить не нужно.</p>
+      </div>
+      <a class="btn btn-p" href="./app.html">Открыть labpad</a>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 labpad</span>
+    <span class="links">
+      <a href="https://sehaxe.github.io/gostpadi/">gostpadi</a>
+      <a href="./app.html">Редактор</a>
+      <a href="#what">Возможности</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+  const THEMES = ["auto", "light", "dark"];
+  const NAMES = { auto: "авто", light: "светлая", dark: "тёмная" };
+  const btn = document.getElementById("theme");
+  function apply(t) {
+    document.documentElement.dataset.theme = t;
+    localStorage.setItem("labpad.theme", t);
+    btn.title = "Тема: " + NAMES[t];
+    btn.textContent = t === "dark" ? "☾" : t === "light" ? "☀" : "◐";
+  }
+  apply(localStorage.getItem("labpad.theme") || "auto");
+  btn.onclick = () => {
+    const cur = document.documentElement.dataset.theme;
+    apply(THEMES[(THEMES.indexOf(cur) + 1) % THEMES.length]);
+  };
+  if (window.matchMedia) {
+    window.matchMedia("(prefers-color-scheme: dark)").subscribe?.(() => {
+      if (document.documentElement.dataset.theme === "auto") apply("auto");
+    });
+  }
+  const io = new IntersectionObserver((es) => {
+    for (const e of es) if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+  }, { rootMargin: "0px 0px -8% 0px" });
+  document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+</script>
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="ru" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>labpad — редактор отчёта</title>
+<meta name="theme-color" content="#fdfcfc">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root{
+    color-scheme: light;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --serif:"Times New Roman","Liberation Serif",Georgia,serif;
+    --bg:#fdfcfc; --soft:#f8f7f7; --card:#f1eeee;
+    --ink:#201d1d; --ink-deep:#0f0000; --body:#424245; --mute:#646262; --faint:#9a9898;
+    --line:rgba(15,0,0,.12); --line2:#646262;
+    --dark:#201d1d; --dark2:#302c2c; --on-dark:#fdfcfc; --on-dark-mute:#9a9898;
+    --paper:#ffffff; --paper-ink:#111; --paper-line:rgba(0,0,0,.18);
+    --accent:#007aff; --ok:#30d158; --warn:#ff9f0a; --err:#ff3b30;
+    --r:4px;
+    --sheet-w:210mm;
+  }
+  html[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#161313; --soft:#1d1919; --card:#241f1f;
+    --ink:#fdfcfc; --ink-deep:#ffffff; --body:#c9c5c5; --mute:#9a9898; --faint:#6e6e73;
+    --line:rgba(253,252,252,.12); --line2:#9a9898;
+    --dark:#0f0d0d; --dark2:#1b1818; --on-dark:#fdfcfc; --on-dark-mute:#9a9898;
+    --paper:#fdfcfc; --paper-ink:#111; --paper-line:rgba(0,0,0,.18);
+    --accent:#4da3ff;
+  }
+  @media (prefers-color-scheme: dark){
+    html[data-theme="auto"]{
+      color-scheme: dark;
+      --bg:#161313; --soft:#1d1919; --card:#241f1f;
+      --ink:#fdfcfc; --ink-deep:#ffffff; --body:#c9c5c5; --mute:#9a9898; --faint:#6e6e73;
+      --line:rgba(253,252,252,.12); --line2:#9a9898;
+      --dark:#0f0d0d; --dark2:#1b1818; --on-dark:#fdfcfc; --on-dark-mute:#9a9898;
+      --paper:#fdfcfc; --paper-ink:#111; --paper-line:rgba(0,0,0,.18);
+      --accent:#4da3ff;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--mono);-webkit-font-smoothing:antialiased}
+  button{font:inherit}
+  header{border-bottom:1px solid var(--line);height:52px;display:flex;align-items:center;gap:14px;padding:0 16px}
+  .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;text-decoration:none;color:var(--ink)}
+  .logo .mark{width:9px;height:9px;border:1px solid var(--ink);border-radius:2px;position:relative}
+  .logo .mark:before{content:"";position:absolute;left:2px;top:2px;width:3px;height:3px;background:var(--ink)}
+  .pname{background:transparent;border:1px solid transparent;color:var(--mute);font:13px var(--mono);padding:3px 6px;border-radius:var(--r);min-width:160px}
+  .pname:hover{border-color:var(--line)}
+  .pname:focus{outline:none;border-color:var(--line2);color:var(--ink)}
+  .spacer{flex:1}
+  .btn{height:30px;padding:0 12px;border:1px solid transparent;border-radius:var(--r);background:transparent;color:var(--ink);font:500 12px var(--mono);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:border-color .18s ease,background-color .18s ease}
+  .btn:hover{background:var(--soft)}
+  .btn-g{border-color:var(--line2)}
+  .btn-p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .btn-p:hover{background:var(--ink)}
+  .btn-p:active{background:var(--ink-deep)}
+  .iconbtn{width:30px;height:30px;justify-content:center;padding:0}
+  .layout{display:grid;grid-template-columns:230px minmax(0,1fr) 300px;height:calc(100% - 52px)}
+  aside{border-right:1px solid var(--line);padding:14px 12px;overflow:auto}
+  aside.right{border-right:0;border-left:1px solid var(--line)}
+  .side-h{font-size:11px;letter-spacing:.06em;color:var(--faint);margin:0 0 10px;text-transform:uppercase}
+  .tree{list-style:none;margin:0 0 12px;padding:0}
+  .tree li{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--r);cursor:pointer;color:var(--body);font-size:13px}
+  .tree li:hover{background:var(--soft)}
+  .tree li.on{background:var(--card);color:var(--ink)}
+  .tree li .num{font-size:11px;color:var(--faint);width:16px}
+  .addbtn{width:100%;justify-content:flex-start;color:var(--mute)}
+  .stage{overflow:auto;padding:26px 18px 60px;background:var(--soft)}
+  .sheet{
+    width:min(var(--sheet-w),100%);min-height:297mm;margin:0 auto 18px;background:var(--paper);color:var(--paper-ink);
+    font-family:var(--serif);font-size:14pt;line-height:1.5;
+    box-shadow:0 0 0 1px var(--paper-line);
+    padding:20mm 10mm 20mm 20mm;
+  }
+  html[data-theme="dark"] .sheet{box-shadow:0 0 0 1px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35)}
+  .sheet .pagebody{max-width:100%;min-height:calc(297mm - 40mm);display:flex;flex-direction:column}
+  .tit{ text-align:center; margin:0; flex:1; display:flex; flex-direction:column; }
+  .tit .year{margin-top:auto}
+  .tit .min{font-size:11pt;line-height:1.35;margin-bottom:14mm;text-transform:uppercase}
+  .tit .vuz{font-size:12pt;margin-bottom:2mm}
+  .tit h1{font-size:18pt;letter-spacing:.08em;margin:16mm 0 3mm;font-weight:700}
+  .tit .lab{font-size:14pt;margin:0 0 16mm}
+  .tit .who{font-size:12pt;line-height:1.8;text-align:left;margin-left:auto;width:60%;margin-bottom:auto}
+  .tit .who b{font-weight:400;color:#000}
+  .tit .year{font-size:12pt;margin-top:22mm}
+  .task{margin-top:8mm;page-break-inside:avoid}
+  .task h2{font-size:14pt;margin:0 0 3mm;font-weight:700}
+  .task h3{font-size:13pt;margin:6mm 0 2mm;font-weight:700}
+  .task .cond{white-space:pre-wrap;margin:0 0 4mm}
+  .task .code{font:10pt/1.4 var(--mono);background:#f7f7f7;border:1px solid var(--paper-line);padding:3mm;white-space:pre-wrap;word-break:break-word;border-radius:2px}
+  .scheme-slot{border:1px dashed var(--paper-line);padding:10mm 4mm;text-align:center;color:#777;font-size:10pt;margin:2mm 0 4mm}
+  .shot-slot{border:1px dashed var(--paper-line);padding:6mm 4mm;text-align:center;color:#777;font-size:10pt}
+  .field{margin-bottom:10px}
+  .field label{display:block;font-size:11px;color:var(--faint);margin-bottom:4px}
+  .field input,.field textarea{width:100%;background:var(--soft);border:1px solid var(--line);border-radius:var(--r);color:var(--ink);font:13px/1.4 var(--mono);padding:6px 8px}
+  .field input:focus,.field textarea:focus{outline:none;border-color:var(--line2);background:var(--bg)}
+  .field textarea{resize:vertical;min-height:54px}
+  .note{font-size:11px;color:var(--faint);line-height:1.6;border-top:1px solid var(--line);padding-top:10px;margin-top:14px}
+  .badge{font-size:10px;border:1px solid var(--line);border-radius:var(--r);padding:1px 5px;color:var(--faint)}
+  .status{border-top:1px solid var(--line);height:30px;display:flex;align-items:center;gap:10px;padding:0 14px;font-size:11px;color:var(--mute)}
+  .status .ok{color:var(--ok)}
+  @media print{
+    @page{size:A4;margin:0}
+    header,aside,.status{display:none!important}
+    .layout{display:block;height:auto}
+    .stage{padding:0;background:#fff;overflow:visible}
+    .sheet{width:210mm;min-height:297mm;box-shadow:none;margin:0;padding:20mm 10mm 20mm 20mm;page-break-after:always}
+    .sheet:last-child{page-break-after:auto}
+    .scheme-slot,.shot-slot{border-color:#bbb}html,body{background:#fff}
+  }
+  @media (max-width:1100px){
+    .layout{grid-template-columns:200px minmax(0,1fr)}
+    aside.right{display:none}
+  }
+  @media (max-width:760px){
+    .layout{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+    aside.left{border-right:0;border-bottom:1px solid var(--line);max-height:170px}
+    .stage{padding:14px 8px 40px}
+    .sheet{padding:14mm 8mm 14mm 12mm;font-size:12pt}
+  }
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="./index.html"><span class="mark"></span>labpad</a>
+  <input class="pname" id="pname" value="Отчёт по лабораторной" aria-label="Название проекта">
+  <span class="spacer"></span>
+  <button class="btn btn-g iconbtn" id="theme" title="Тема: авто">◐</button>
+  <button class="btn btn-g" id="print">PDF / печать</button>
+</header>
+
+<div class="layout">
+  <aside class="left">
+    <p class="side-h">Структура</p>
+    <ul class="tree" id="tree">
+      <li class="on" data-view="title"><span class="num">00</span> Титульный лист</li>
+    </ul>
+    <button class="btn addbtn" id="addtask">+ задача</button>
+    <p class="note">Карточка задания: условие, схема из gostpadi, код и скриншот результата.<br><br>Схемы и PDF подключаются на следующем шаге — сейчас каркас и титул.</p>
+  </aside>
+
+  <main class="stage" id="stage">
+    <article class="sheet" id="sheet">
+      <div class="pagebody">
+        <div class="tit">
+          <div class="min" id="t-min">Министерство науки и высшего образования<br>Российской Федерации</div>
+          <div class="vuz" id="t-vuz">Национальный исследовательский университет</div>
+          <div class="vuz" id="t-dep">Кафедра информатики</div>
+          <h1>ОТЧЁТ</h1>
+          <p class="lab" id="t-lab">по лабораторной работе № 1<br>по дисциплине «Основы алгоритмизации и программирования»</p>
+          <div class="who">
+            <div>Выполнил: <b id="t-name">Иванов Иван Иванович</b></div>
+            <div>Группа: <b id="t-group">ИС-21</b></div>
+            <div>Вариант: <b id="t-var">1</b></div>
+            <div>Проверил: <b id="t-teacher">Петров П. П.</b></div>
+          </div>
+          <div class="year" id="t-year">2026</div>
+        </div>
+      </div>
+    </article>
+    <article class="sheet" id="sheet-tasks">
+      <div class="pagebody" id="tasks"></div>
+    </article>
+  </main>
+
+  <aside class="right">
+    <p class="side-h">Титульный лист</p>
+    <div class="field"><label>Учебное заведение</label><input id="f-vuz"></div>
+    <div class="field"><label>Кафедра</label><input id="f-dep"></div>
+    <div class="field"><label>Лабораторная работа №</label><input id="f-labnum"></div>
+    <div class="field"><label>Дисциплина</label><input id="f-course"></div>
+    <div class="field"><label>ФИО студента</label><input id="f-name"></div>
+    <div class="field"><label>Группа</label><input id="f-group"></div>
+    <div class="field"><label>Вариант</label><input id="f-variant"></div>
+    <div class="field"><label>Преподаватель</label><input id="f-teacher"></div>
+    <div class="field"><label>Город, год</label><input id="f-year"></div>
+    <p class="note">Поля синхронизированы с листом. Всё сохраняется в браузере автоматически.</p>
+  </aside>
+</div>
+<div class="status"><span id="msg" class="ok">готово</span><span class="spacer"></span><span id="pages">1 лист</span></div>
+
+<script>
+  const $ = (s) => document.querySelector(s);
+  const KEY = "labpad.project.v1";
+  const THEMES = ["auto", "light", "dark"];
+  const NAMES = { auto: "авто", light: "светлая", dark: "тёмная" };
+
+  const seed = {
+    name: "Отчёт по лабораторной",
+    meta: {
+      vuz: "Национальный исследовательский университет",
+      dep: "Кафедра информатики",
+      labnum: "1",
+      course: "Основы алгоритмизации и программирования",
+      name: "Иванов Иван Иванович",
+      group: "ИС-21",
+      variant: "1",
+      teacher: "Петров П. П.",
+      year: "2026",
+    },
+    tasks: [],
+  };
+
+  let state = load();
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return structuredClone(seed);
+      const p = JSON.parse(raw);
+      return { ...structuredClone(seed), ...p, meta: { ...seed.meta, ...(p.meta || {}) } };
+    } catch { return structuredClone(seed); }
+  }
+  let saveTimer;
+  function save() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      localStorage.setItem(KEY, JSON.stringify(state));
+      $("#msg").textContent = "сохранено";
+    }, 250);
+  }
+
+  // тема: авто → светлая → тёмная
+  const btn = $("#theme");
+  function applyTheme(t) {
+    document.documentElement.dataset.theme = t;
+    localStorage.setItem("labpad.theme", t);
+    btn.title = "Тема: " + NAMES[t];
+    btn.textContent = t === "dark" ? "☾" : t === "light" ? "☀" : "◐";
+  }
+  applyTheme(localStorage.getItem("labpad.theme") || "auto");
+  btn.onclick = () => {
+    const cur = document.documentElement.dataset.theme;
+    applyTheme(THEMES[(THEMES.indexOf(cur) + 1) % THEMES.length]);
+  };
+  window.matchMedia?.("(prefers-color-scheme: dark)").addEventListener?.("change", () => {
+    if (document.documentElement.dataset.theme === "auto") applyTheme("auto");
+  });
+
+  // титул
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  function renderTitle() {
+    const m = state.meta;
+    set("t-vuz", m.vuz);
+    set("t-dep", m.dep);
+    set("t-lab", `по лабораторной работе № ${m.labnum}\nпо дисциплине «${m.course}»`);
+    set("t-name", m.name);
+    set("t-group", m.group);
+    set("t-var", m.variant);
+    set("t-teacher", m.teacher);
+    set("t-year", m.year);
+    $("#t-lab").style.whiteSpace = "pre-line";
+    $("#pname").value = state.name;
+    for (const k of ["vuz", "dep", "labnum", "course", "name", "group", "variant", "teacher", "year"]) {
+      const f = document.getElementById("f-" + k);
+      if (f && document.activeElement !== f) f.value = m[k] ?? "";
+    }
+  }
+  for (const k of ["vuz", "dep", "labnum", "course", "name", "group", "variant", "teacher", "year"]) {
+    document.getElementById("f-" + k).addEventListener("input", (e) => {
+      state.meta[k] = e.target.value;
+      renderTitle(); save();
+    });
+  }
+  $("#pname").addEventListener("input", (e) => { state.name = e.target.value; save(); });
+
+  // задачи
+  function renderTasks() {
+    const box = $("#tasks");
+    box.innerHTML = "";
+    state.tasks.forEach((t, i) => {
+      const el = document.createElement("section");
+      el.className = "task";
+      el.innerHTML = `
+        <h2>Задача ${i + 1}</h2>
+        <h3>Условие</h3>
+        <div class="cond" contenteditable="true" data-i="${i}" data-f="condition">${esc(t.condition || "Вставь условие задания…")}</div>
+        <h3>Блок-схема</h3>
+        <div class="scheme-slot">схема из gostpadi появится здесь</div>
+        <h3>Код программы</h3>
+        <div class="code" contenteditable="true" data-i="${i}" data-f="code">${esc(t.code || "#include <stdio.h>\nint main(void) {\n    return 0;\n}")}</div>
+        <h3>Результат</h3>
+        <div class="shot-slot">скриншот консоли — перетащи сюда</div>`;
+      box.appendChild(el);
+    });
+    box.querySelectorAll("[contenteditable]").forEach((el) => {
+      el.addEventListener("input", () => {
+        const i = +el.dataset.i, f = el.dataset.f;
+        state.tasks[i][f] = el.innerText;
+        save();
+      });
+    });
+    renderTree();
+    $("#pages").textContent = `${1 + state.tasks.length} ${state.tasks.length ? "листа" : "лист"}`;
+  }
+  const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+  function renderTree() {
+    const tree = $("#tree");
+    tree.querySelectorAll("li.task-item").forEach((n) => n.remove());
+    state.tasks.forEach((t, i) => {
+      const li = document.createElement("li");
+      li.className = "task-item";
+      li.dataset.view = "task" + i;
+      li.innerHTML = `<span class="num">${String(i + 1).padStart(2, "0")}</span> Задача ${i + 1}`;
+      li.onclick = () => {
+        tree.querySelectorAll("li").forEach((x) => x.classList.remove("on"));
+        li.classList.add("on");
+        document.querySelectorAll(".task")[i]?.scrollIntoView({ behavior: "smooth", block: "start" });
+      };
+      tree.appendChild(li);
+    });
+  }
+  $("#addtask").onclick = () => {
+    state.tasks.push({ condition: "", code: "", scheme: "", shot: "" });
+    renderTasks(); save();
+  };
+
+  $("#print").onclick = () => window.print();
+  renderTitle();
+  renderTasks();
+</script>
+</body>
+</html>
