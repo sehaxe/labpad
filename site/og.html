@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  *{box-sizing:border-box;margin:0}
+  body{width:1200px;height:630px;background:#fdfcfc;color:#201d1d;font-family:"JetBrains Mono",ui-monospace,monospace;overflow:hidden;position:relative}
+  .wrap{position:absolute;inset:0;padding:56px 64px;display:flex;flex-direction:column}
+  .top{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:700}
+  .mark{width:14px;height:14px;border:2px solid #201d1d;border-radius:3px;position:relative}
+  .mark:before{content:"";position:absolute;left:3px;top:3px;width:6px;height:6px;background:#201d1d}
+  .ver{font-size:13px;font-weight:600;color:#646262;border:1px solid rgba(15,0,0,.16);border-radius:4px;padding:2px 8px;margin-left:2px}
+  .main{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;flex:1;align-items:center;padding-top:8px}
+  h1{font-size:52px;line-height:1.2;letter-spacing:-.025em;font-weight:700;margin-bottom:22px}
+  .lede{font-size:19px;line-height:1.6;color:#424245;max-width:30ch}
+  .rule{height:1px;background:rgba(15,0,0,.14);margin-top:30px}
+  .foot{display:flex;justify-content:space-between;align-items:center;font-size:15px;color:#646262;padding-top:22px}
+  .sheet{background:#fff;border:1px solid rgba(15,0,0,.14);height:474px;padding:26px 26px 18px;display:flex;flex-direction:column;box-shadow:14px 14px 0 -1px #f1eeee,14px 14px 0 0 rgba(15,0,0,.1)}
+  .uni{font:9px/1.5 "Times New Roman",serif;letter-spacing:.06em;text-align:center;color:#201d1d;opacity:.75}
+  .ttl{font:700 21px "Times New Roman",serif;text-align:center;margin:18px 0 3px;letter-spacing:.05em}
+  .sub{font:11px "Times New Roman",serif;text-align:center;opacity:.7}
+  .meta{font:10px/1.9 "Times New Roman",serif;border-top:1px solid rgba(0,0,0,.18);margin-top:16px;padding-top:10px}
+  .scheme{margin-top:auto;padding-top:10px;border-top:1px solid rgba(0,0,0,.18)}
+  .scheme svg{width:100%;height:auto;display:block}
+  .scheme path,.scheme rect,.scheme ellipse{fill:none;stroke:#201d1d;stroke-width:1.2}
+  .scheme text{fill:#201d1d;font:6.4px "JetBrains Mono",monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span class="mark"></span>labpad<span class="ver">beta</span></div>
+  <div class="main">
+    <div>
+      <h1>Отчёт по лабе —<br>за пару минут</h1>
+      <p class="lede">Условие, схема из кода, код и вывод — на одном листе А4. PDF по ГОСТ прямо из браузера.</p>
+      <div class="rule"></div>
+    </div>
+    <div class="sheet">
+      <div class="uni">МИНИСТЕРСТВО ОБРАЗОВАНИЯ РЕСПУБЛИКИ БЕЛАРУСЬ<br>БГУИР · КАФЕДРА ИНФОРМАТИКИ</div>
+      <div class="ttl">ЛАБОРАТОРНАЯ РАБОТА № 3</div>
+      <div class="sub">«Одномерные массивы»</div>
+      <div class="meta">Выполнил: Иванов И. И.<br>Группа: 658302<br>Проверил: Селезнев А. И.<br>Минск 2026</div>
+      <div class="scheme">
+        <svg viewBox="0 0 260 126">
+          <ellipse cx="130" cy="10" rx="24" ry="7"></ellipse>
+          <text x="130" y="12" text-anchor="middle">начало</text>
+          <path d="M130 17 L130 25"></path>
+          <path d="M78 25 H182 L174 39 H70 Z"></path>
+          <text x="126" y="36" text-anchor="middle">n, a[100]</text>
+          <path d="M130 39 L130 45"></path>
+          <path d="M130 45 L192 58 L130 71 L68 58 Z"></path>
+          <text x="130" y="59.5" text-anchor="middle">i &lt; n</text>
+          <path d="M192 58 L210 58"></path>
+          <text x="200" y="55" text-anchor="middle">да</text>
+          <rect x="210" y="51" width="44" height="14"></rect>
+          <text x="232" y="60" text-anchor="middle">s += a[i]</text>
+          <path d="M232 65 L232 98 L130 98"></path>
+          <text x="136" y="77" text-anchor="start">нет</text>
+          <path d="M130 71 L130 80"></path>
+          <path d="M74 80 H186 L178 94 H66 Z"></path>
+          <text x="126" y="91" text-anchor="middle">вывод s</text>
+          <path d="M130 94 L130 100"></path>
+          <ellipse cx="130" cy="107" rx="24" ry="7"></ellipse>
+          <text x="130" y="109" text-anchor="middle">конец</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>labpad · редактор отчётов по лабораторным</span><span>схемы — gostpadi · вёрстка — typst</span></div>
+</div>
+</body>
+</html>
