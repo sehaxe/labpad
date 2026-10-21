@@ -43,3 +43,7 @@ cd runner && cargo run --release        # http://127.0.0.1:8788
 (https://ce.judge0.com, C/GCC) — работает и на статическом сайте без
 установки. Код в этом случае уходит на сторонний сервис; локальный runner
 быстрее (≈50 мс против ≈1–2 с) и приватнее.
+
+## Лицензия
+
+MIT — см. [LICENSE](LICENSE). Схемы рисует [gostpadi](https://sehaxe.github.io/gostpadi/) (тоже MIT).
