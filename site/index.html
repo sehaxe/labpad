@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>labpad — отчёт по лабораторной за пару минут: схемы ГОСТ и PDF</title>
 <meta name="description" content="Редактор отчёта по лабораторной: условие, блок-схема из кода, код, вывод и скриншоты — на листе А4. PDF по ГОСТ прямо в браузере, без установки.">
-<meta name="keywords" content="отчёт по лабораторной, блок-схема, ГОСТ 19.701-90, лабораторная работа, ОАиП, БГУИР, PDF, Typst, gostpadi">
+<meta name="keywords" content="отчёт по лабораторной, блок-схема, ГОСТ 19.701-90, лабораторная работа, ОАиП, БГУИР, PDF, gostpadi">
 <meta name="author" content="labpad">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://sehaxe.github.io/labpad/">
@@ -185,7 +185,7 @@
     <nav>
       <a class="navlink" href="#what">Что внутри</a>
       <a class="navlink" href="#how">Как работает</a>
-      <a class="navlink" href="#typst">Typst</a>
+      <a class="navlink" href="#pdf">PDF</a>
       <a class="navlink" href="https://sehaxe.github.io/gostpadi/">gostpadi</a>
       <button class="themebtn" id="theme" title="Тема: авто" aria-label="Переключить тему">◐</button>
       <a class="btn btn-p" href="./app.html"><span class="long">Открыть редактор</span><span class="short">Открыть</span></a>
@@ -201,7 +201,7 @@
         <h1>Отчёт по лабе —<br>за пару минут</h1>
         <p class="lede">
           Условие, блок-схема из кода, код и результат — на одном листе А4.
-          Схема приезжает из gostpadi, вёрстка собирается в Typst, PDF скачивается прямо из браузера.
+          Схема приезжает из gostpadi, лист собирается сразу в браузере, PDF — печатью в один клик.
         </p>
         <div class="actions">
           <a class="btn btn-p" href="./app.html">Собрать отчёт</a>
@@ -273,12 +273,12 @@
       <div class="steps">
         <div class="step reveal"><div class="n">01</div><h3>Вставь код</h3><p>Код задания — в карточку. Схема перерисуется сама, если поправить код.</p></div>
         <div class="step reveal"><div class="n">02</div><h3>Собери лист</h3><p>Титул, условие, схема, код и результат ложатся на А4 по ГОСТ.</p></div>
-        <div class="step reveal"><div class="n">03</div><h3>Скачай PDF</h3><p>Typst компилирует в браузере: вектор, шрифт, поля — как в типографии.</p></div>
+        <div class="step reveal"><div class="n">03</div><h3>Скачай PDF</h3><p>Печать в PDF: поля, шрифт и разрывы страниц уже настроены под А4.</p></div>
       </div>
     </section>
 
-    <section id="typst">
-      <div class="sechead"><h2>Почему Typst</h2><span class="tag">а не Word</span></div>
+    <section id="pdf">
+      <div class="sechead"><h2>PDF по ГОСТ</h2><span class="tag">без установки</span></div>
       <div class="cols">
         <div class="col reveal">
           <h3>[+] Поля и шрифт по ГОСТ</h3>
@@ -288,9 +288,9 @@
         </div>
         <div class="col reveal">
           <h3>[+] Никакой возни с колонтитулами</h3>
-          <p>Нумерация страниц, титульник и разрывы — в шаблоне. Ты правишь данные, а не оформление.</p>
-          <h3>[+] Один шаблон для людей и агентов</h3>
-          <p>Тот же <code>.typ</code> собирается в PDF из браузера и из CLI: результат идентичный.</p>
+          <p>Поля, нумерация страниц и разрывы заданы в стиле листа. Ты правишь данные, а не оформление.</p>
+          <h3>[+] Работает без сервера</h3>
+          <p>Сайт статический: открыл, собрал, напечатал. Ни аккаунта, ни установки — данные остаются у тебя.</p>
         </div>
       </div>
     </section>
@@ -301,7 +301,7 @@
         labpad не рисует схемы сам: он просит их у gostpadi — того же движка, что на сайте и в CLI.
         Правка кода в карточке перерисовывает схему, не покидая редактор.
       </p>
-      <div class="codewrap"><span class="c"># из карточки задания</span><br><span class="k">labpad</span> build report.json -o report.pdf<br><span class="c"># схема берётся из gostpadi, дальше — typst</span></div>
+      <div class="codewrap"><span class="c"># собрать отчёт</span><br>1. вставь код в карточку задания<br>2. схема нарисуется сама<br>3. <span class="k">Ctrl+P</span> → «Сохранить как PDF»</div>
     </section>
 
     <section class="cta" style="border-top:1px solid var(--line)">

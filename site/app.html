@@ -109,7 +109,11 @@
   .sec p{margin:0 0 2mm;white-space:pre-wrap}
   .code{font:10pt/1.45 var(--mono);background:#f7f7f7;border:1px solid var(--paper-line);padding:3mm;white-space:pre-wrap;word-break:break-word;border-radius:2px;min-height:20mm}
   [contenteditable]:empty:before{content:attr(data-ph);color:#999;white-space:pre-wrap}
-  .out{font:10pt/1.45 var(--mono);background:#fbfbfb;border:1px solid var(--paper-line);border-left:3px solid #bbb;padding:3mm;white-space:pre-wrap;word-break:break-word;border-radius:2px;min-height:14mm;color:#222}
+  .term{background:#161313;border:1px solid #2b2727;border-radius:4px;overflow:hidden;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .termbar{display:flex;align-items:center;gap:1.2mm;padding:1.4mm 3mm;background:#201d1d;border-bottom:1px solid #2b2727}
+  .tdot{width:2.2mm;height:2.2mm;border-radius:50%;background:#3a3535;display:inline-block}
+  .termtitle{margin-left:2mm;font:8pt var(--mono);color:#8a8484;letter-spacing:.02em}
+  .out{font:9.5pt/1.45 var(--mono);background:transparent;color:#e8e4e4;padding:2.5mm 3mm;white-space:pre-wrap;word-break:break-word;min-height:14mm;outline:none}
   .shots{display:flex;flex-wrap:wrap;gap:3mm;margin:2mm 0}
   .shot{border:1px solid var(--paper-line);padding:2mm;max-width:100%;font:10pt var(--mono);color:#777}
   .shot img{display:block;max-width:100%;max-height:60mm}
@@ -148,18 +152,20 @@
   .status{border-top:1px solid var(--line);height:30px;display:flex;align-items:center;gap:10px;padding:0 14px;font-size:11px;color:var(--mute)}
   .status .ok{color:var(--ok)}
   @media print{
-    @page{size:A4;margin:0}
+    /* поля сверху/снизу: принтер не съест край листа */
+    @page{size:A4;margin:12mm 0}
     header,aside,.status{display:none!important}
     .layout{display:block;height:auto}
     .stage{padding:0;background:#fff;overflow:visible}
-    .sheet{width:210mm;min-height:296mm;box-shadow:none;margin:0;page-break-after:always;padding:20mm 10mm 20mm 20mm}
-    .sheet:last-child{page-break-after:auto}
+    .sheet{width:210mm;min-height:272mm;box-shadow:none;margin:0;page-break-after:always;padding:0 10mm 0 20mm}
+    .sheet:last-child,.sheet.sheet-last{page-break-after:auto;break-after:auto}
     .slot{border-color:#bbb}
     .sec{page-break-inside:auto}
-    .blk,.shot,.scheme-box{page-break-inside:avoid}
+    .blk,.shot,.scheme-box{page-break-inside:avoid;break-inside:avoid}
+    .blk[data-blk="scheme"]{break-inside:avoid}
     /* схема — на своей странице и во всю её высоту: иначе высокая схема
        вписывается в 150 мм и кегль становится нечитаемым */
-    .scheme-box svg{max-height:232mm;width:auto;max-width:100%}
+    .scheme-box svg{max-height:255mm;width:auto;max-width:100%}
     h2,h3{page-break-after:avoid}
     html,body{background:#fff}
   }
@@ -306,8 +312,8 @@ int main(void) {
         vuz: "«Белорусский государственный университет информатики и радиоэлектроники»",
         labnum: "1", topic: "Одномерные массивы",
         course: "Основы алгоритмизации и программирования",
-        variant: "7", group: "658302",
-        name: "Иванов И. И.", teacher: "Селезнев А. И.", place: "Минск 2026",
+        variant: "7", group: "000000",
+        name: "Иванов И. И.", teacher: "Петров П. П.", place: "Минск 2026",
         goal: "Цель работы — научиться обрабатывать одномерные массивы и оформлять блок-схемы по ГОСТ 19.701-90.",
       },
       tasks: [{
@@ -427,7 +433,10 @@ int main(void) {
           <pre class="runout" data-runout="${i}"></pre>
         </div>
         <details class="manual"><summary>или вставить вручную</summary>
-          <div class="out" contenteditable="true" data-i="${i}" data-f="output" data-ph="Вставь вывод консоли…">${esc(t.output || "")}</div>
+          <div class="term">
+            <div class="termbar"><span class="tdot"></span><span class="tdot"></span><span class="tdot"></span><span class="termtitle">вывод программы</span></div>
+            <div class="out" contenteditable="true" data-i="${i}" data-f="output" data-ph="Вставь вывод консоли…">${esc(t.output || "")}</div>
+          </div>
         </details></div>
         <div class="blk" data-blk="shots"><h3>Скриншоты результатов выполнения задания</h3>
         <div class="shots" data-i="${i}">${(t.shots || []).map((src) => `<div class="shot"><img src="${src}" alt=""></div>`).join("") || `<div class="slot shot-add">скриншоты — перетащи файлы сюда или нажми</div>`}</div>
@@ -595,36 +604,53 @@ int main(void) {
     if (!out || !n) return { json: null, n: 0 };
     return { json: new TextDecoder().decode(new Uint8Array(wasm.memory.buffer, out, n)), n };
   }
-  async function drawScheme(i) {
-    const task = state.tasks[i];
-    const box = document.querySelector(`.scheme-box[data-scheme="${i}"]`);
-    const note = document.querySelector(`.scheme-actions [data-draw="${i}"]`)?.parentElement.querySelector(".scheme-note");
-    if (!box) return;
-    const code = (state.tasks[i]?.code || "").trim();
-    if (!code) { box.innerHTML = '<div class="slot">сначала вставь код</div>'; return; }
-    if (note) note.textContent = "рисую…";
+  /* Все схемы лабы рисуются ОДНОЙ пачкой: движок держит единый масштаб
+     и единые размеры блоков на всю пачку (инвариант
+     batch_schemas_share_scale_font_and_rect_sizes), поэтому блоки в
+     разных схемах отчёта совпадают до миллиметра. */
+  async function drawAllSchemes() {
+    const idx = state.tasks.map((t, i) => [i, t]).filter(([, t]) => (t.code || "").trim());
+    if (!idx.length) return;
+    idx.forEach(([i]) => {
+      const note = document.querySelector(`.scheme-actions [data-draw="${i}"]`)?.parentElement.querySelector(".scheme-note");
+      if (note) note.textContent = "рисую…";
+    });
+    const tasks = idx.map(([, t]) => t);
     try {
       await loadEngine();
-      const [ip, il] = wasmInput(packInputs([{ name: "task.c", text: code }]));
+      const [ip, il] = wasmInput(packInputs(tasks.map((t, k) => ({ name: `task${k + 1}.c`, text: t.code }))));
       const lp = wasm.gostpadi_alloc(4);
-      const out = wasm.gostpadi_render_batch(ip, il, 1, 1, 12, lp);
+      const out = wasm.gostpadi_render_batch(ip, il, tasks.length, 1, 12, lp);
       const r = readOut(out, lp);
       wasm.gostpadi_free(ip, il); wasm.gostpadi_free(lp, 4);
       if (out) wasm.gostpadi_free(out, r.n);
       const j = JSON.parse(r.json || '{"ok":false}');
-      if (!j.ok || !j.files?.length || !j.files[0].sheets?.length) {
-        box.innerHTML = `<div class="slot">${esc(j.errors?.[0]?.msg || j.empty?.[0]?.msg || "движок не смог нарисовать")}</div>`;
-        if (note) note.textContent = "ошибка";
-        return;
-      }
-      if (state.tasks[i] !== task || !box.isConnected) return;
-      const f = j.files[0];
-      box.innerHTML = f.sheets[0];
-      if (note) note.textContent = `${f.sheets.length} лист${f.sheets.length === 1 ? "" : "а"} · ГОСТ 19.701-90`;
+      idx.forEach(([i, t], k) => {
+        const box = document.querySelector(`.scheme-box[data-scheme="${i}"]`);
+        const note = document.querySelector(`.scheme-actions [data-draw="${i}"]`)?.parentElement.querySelector(".scheme-note");
+        if (!box || state.tasks[i] !== t) return;
+        const f = j.files?.[k];
+        if (!f || !f.sheets?.length) {
+          box.innerHTML = `<div class="slot">${esc(j.errors?.[0]?.msg || j.empty?.[0]?.msg || "движок не смог нарисовать")}</div>`;
+          if (note) note.textContent = "ошибка";
+          return;
+        }
+        box.innerHTML = f.sheets[0];
+        if (note) note.textContent = `${f.sheets.length} лист${f.sheets.length === 1 ? "" : "а"} · ГОСТ 19.701-90`;
+      });
     } catch (e) {
-      box.innerHTML = `<div class="slot">движок не загрузился: ${esc(e.message)}</div>`;
-      if (note) note.textContent = "ошибка";
+      idx.forEach(([i]) => {
+        const box = document.querySelector(`.scheme-box[data-scheme="${i}"]`);
+        if (box) box.innerHTML = `<div class="slot">движок не загрузился: ${esc(e.message)}</div>`;
+      });
     }
+  }
+  function drawScheme(i) {
+    // одна схема — частный случай пачки: перерисовываем все, иначе
+    // масштаб этой схемы разошёлся бы с остальными
+    const t = state.tasks[i];
+    if (t) t.code = t.code || "";
+    return drawAllSchemes();
   }
   /* ---------- запуск C: локальный runner, иначе облако (Judge0) ---------- */
   const RUNNER = "http://127.0.0.1:8788";
@@ -734,9 +760,9 @@ int main(void) {
     runTimer = setTimeout(() => runCode(i, true), 900);
   }
   let drawTimer;
-  function scheduleDraw(i) {
+  function scheduleDraw() {
     clearTimeout(drawTimer);
-    drawTimer = setTimeout(() => drawScheme(i), 700);
+    drawTimer = setTimeout(() => drawAllSchemes(), 700);
   }
 
   /* Печать: пустые блоки не печатаем, «или вставить вручную» — раскрываем,
@@ -758,6 +784,11 @@ int main(void) {
       }
       blk.classList.toggle("print-empty", empty);
     });
+    // последний лист не должен тянуть за собой пустую страницу
+    document.querySelectorAll(".sheet").forEach((sh) => sh.classList.remove("sheet-last"));
+    const sheets = [...document.querySelectorAll(".sheet")];
+    const lastVisible = sheets.filter((sh) => !sh.classList.contains("print-empty")).pop();
+    if (lastVisible) lastVisible.classList.add("sheet-last");
   }
   window.addEventListener("beforeprint", preparePrint);
   $("#print").onclick = () => { preparePrint(); window.print(); };

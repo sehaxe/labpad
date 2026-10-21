@@ -6,22 +6,17 @@
 <style>
   *{box-sizing:border-box;margin:0}
   body{width:1200px;height:630px;background:#fdfcfc;color:#201d1d;font-family:"JetBrains Mono",ui-monospace,monospace;overflow:hidden;position:relative}
-  .wrap{position:absolute;inset:0;padding:56px 64px;display:flex;flex-direction:column}
+  .wrap{position:absolute;inset:0;padding:48px 56px;display:flex;flex-direction:column}
   .top{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:700}
   .mark{width:14px;height:14px;border:2px solid #201d1d;border-radius:3px;position:relative}
   .mark:before{content:"";position:absolute;left:3px;top:3px;width:6px;height:6px;background:#201d1d}
   .ver{font-size:13px;font-weight:600;color:#646262;border:1px solid rgba(15,0,0,.16);border-radius:4px;padding:2px 8px;margin-left:2px}
   .main{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;flex:1;align-items:center;padding-top:8px}
-  h1{font-size:52px;line-height:1.2;letter-spacing:-.025em;font-weight:700;margin-bottom:22px}
+  h1{font-size:54px;line-height:1.16;letter-spacing:-.03em;font-weight:700;margin-bottom:20px}
   .lede{font-size:19px;line-height:1.6;color:#424245;max-width:30ch}
   .rule{height:1px;background:rgba(15,0,0,.14);margin-top:30px}
-  .foot{display:flex;justify-content:space-between;align-items:center;font-size:15px;color:#646262;padding-top:22px}
-  .sheet{background:#fff;border:1px solid rgba(15,0,0,.14);height:474px;padding:26px 26px 18px;display:flex;flex-direction:column;box-shadow:14px 14px 0 -1px #f1eeee,14px 14px 0 0 rgba(15,0,0,.1)}
-  .uni{font:9px/1.5 "Times New Roman",serif;letter-spacing:.06em;text-align:center;color:#201d1d;opacity:.75}
-  .ttl{font:700 21px "Times New Roman",serif;text-align:center;margin:18px 0 3px;letter-spacing:.05em}
-  .sub{font:11px "Times New Roman",serif;text-align:center;opacity:.7}
-  .meta{font:10px/1.9 "Times New Roman",serif;border-top:1px solid rgba(0,0,0,.18);margin-top:16px;padding-top:10px}
-  .scheme{margin-top:auto;padding-top:10px;border-top:1px solid rgba(0,0,0,.18)}
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:24px;font-size:13px;color:#646262;padding-top:18px;letter-spacing:.01em}
+  .scheme{display:flex;align-items:center;justify-content:center;height:100%;padding:8px 0 8px 24px;border-left:1px solid rgba(15,0,0,.12)}
   .scheme svg{width:100%;height:auto;display:block}
   .scheme path,.scheme rect,.scheme ellipse{fill:none;stroke:#201d1d;stroke-width:1.2}
   .scheme text{fill:#201d1d;font:6.4px "JetBrains Mono",monospace}
@@ -36,12 +31,7 @@
       <p class="lede">Условие, схема из кода, код и вывод — на одном листе А4. PDF по ГОСТ прямо из браузера.</p>
       <div class="rule"></div>
     </div>
-    <div class="sheet">
-      <div class="uni">МИНИСТЕРСТВО ОБРАЗОВАНИЯ РЕСПУБЛИКИ БЕЛАРУСЬ<br>БГУИР · КАФЕДРА ИНФОРМАТИКИ</div>
-      <div class="ttl">ЛАБОРАТОРНАЯ РАБОТА № 3</div>
-      <div class="sub">«Одномерные массивы»</div>
-      <div class="meta">Выполнил: Иванов И. И.<br>Группа: 658302<br>Проверил: Селезнев А. И.<br>Минск 2026</div>
-      <div class="scheme">
+    <div class="scheme">
         <svg viewBox="0 0 260 126">
           <ellipse cx="130" cy="10" rx="24" ry="7"></ellipse>
           <text x="130" y="12" text-anchor="middle">начало</text>
@@ -64,10 +54,9 @@
           <ellipse cx="130" cy="107" rx="24" ry="7"></ellipse>
           <text x="130" y="109" text-anchor="middle">конец</text>
         </svg>
-      </div>
+    </div>
     </div>
   </div>
-  <div class="foot"><span>labpad · редактор отчётов по лабораторным</span><span>схемы — gostpadi · вёрстка — typst</span></div>
 </div>
 </body>
 </html>
