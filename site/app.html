@@ -147,11 +147,6 @@
   .note{font-size:11px;color:var(--faint);line-height:1.6;border-top:1px solid var(--line);padding-top:10px;margin-top:14px}
   .status{border-top:1px solid var(--line);height:30px;display:flex;align-items:center;gap:10px;padding:0 14px;font-size:11px;color:var(--mute)}
   .status .ok{color:var(--ok)}
-  .status .err{color:#d33}
-  .typst-err{position:fixed;left:16px;right:16px;bottom:42px;z-index:50;background:var(--bg);border:1px solid #d33;border-radius:var(--r);padding:10px 38px 10px 12px;box-shadow:0 8px 30px rgba(0,0,0,.18)}
-  .typst-err pre{margin:0;white-space:pre-wrap;word-break:break-word;font:11px/1.5 var(--mono);color:var(--ink);max-height:38vh;overflow:auto}
-  .typst-err button{position:absolute;right:6px;top:4px;border:0;background:transparent;color:var(--mute);font:16px var(--mono);cursor:pointer}
-  .typst-err[hidden]{display:none}
   @media print{
     @page{size:A4;margin:0}
     header,aside,.status{display:none!important}
@@ -190,7 +185,6 @@
   <span class="spacer"></span>
   <button class="btn btn-g iconbtn" id="theme" title="Тема: авто">◐</button>
   <button class="btn btn-g" id="print">PDF / печать</button>
-  <button class="btn btn-g" id="pdf-typst" title="PDF по ГОСТ через Typst — компилируется в браузере, wasm грузится по первому клику">PDF · Typst</button>
 </header>
 
 <div class="layout">
@@ -253,7 +247,6 @@
   </aside>
 </div>
 <div class="status"><span id="msg" class="ok">готово</span><span class="spacer"></span><span id="pages">2 листа</span></div>
-<div class="typst-err" id="typst-err" hidden><button type="button" aria-label="Закрыть">×</button><pre></pre></div>
 
 <script>
   const $ = (s) => document.querySelector(s);
@@ -312,8 +305,8 @@ int main(void) {
         course: "Основы алгоритмизации и программирования",
         variant: "7", group: "658302",
         name: "Иванов И. И.", teacher: "Селезнев А. И.", place: "Минск 2026",
+        goal: "Цель работы — научиться обрабатывать одномерные массивы и оформлять блок-схемы по ГОСТ 19.701-90.",
       },
-      goal: "Цель работы — научиться обрабатывать одномерные массивы и оформлять блок-схемы по ГОСТ 19.701-90.",
       tasks: [{
         condition: "Ввести количество элементов массива (1..100) с проверкой ввода, заполнить массив, вычислить сумму элементов и вывести результат.",
         code: DEMO_CODE,
@@ -338,8 +331,7 @@ int main(void) {
     clearTimeout(timer);
     timer = setTimeout(() => {
       localStorage.setItem(KEY, JSON.stringify(state));
-      // не затираем статус/ошибку Typst автосохранением
-      if (!/^(Typst|PDF готов)/.test($("#msg").textContent)) $("#msg").textContent = "сохранено";
+      $("#msg").textContent = "сохранено";
     }, 250);
   }
   const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
@@ -765,360 +757,6 @@ int main(void) {
   }
   window.addEventListener("beforeprint", preparePrint);
   $("#print").onclick = () => { preparePrint(); window.print(); };
-
-  /* ---------- PDF по ГОСТ: Typst (WASM) целиком в браузере ---------- */
-  const TYPST_MAIN = "/labpad/main.typ";
-  const typstBtn = $("#pdf-typst");
-  let typstApi = null, typstLoading = null, typstBusy = false;
-
-  const showTypstError = (text) => {
-    const box = $("#typst-err");
-    if (!box) return;
-    box.querySelector("pre").textContent = text;
-    box.hidden = false;
-  };
-  $("#typst-err button").onclick = () => { $("#typst-err").hidden = true; };
-
-  const tstr = (s) => '"' + String(s ?? "")
-    .replace(/\\/g, "\\\\").replace(/"/g, '\\"')
-    .replace(/\r/g, "\\r").replace(/\n/g, "\\n").replace(/\t/g, "\\t")
-    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "") + '"';
-
-  function typstStatus(text, err) {
-    const m = $("#msg");
-    m.textContent = text;
-    m.className = err ? "err" : "ok";
-  }
-
-  async function fetchBytes(url, onProgress) {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}: ${url}`);
-    const total = Number(res.headers.get("content-length")) || 0;
-    if (!res.body || !total) return new Uint8Array(await res.arrayBuffer());
-    const reader = res.body.getReader();
-    const chunks = [];
-    let got = 0;
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-      got += value.length;
-      onProgress?.(Math.min(1, got / total));
-    }
-    const all = new Uint8Array(got);
-    let off = 0;
-    for (const c of chunks) { all.set(c, off); off += c.length; }
-    return all;
-  }
-
-  async function loadTypst() {
-    if (typstApi) return typstApi;
-    if (typstLoading) return typstLoading;
-    typstLoading = (async () => {
-      typstBtn.textContent = "Typst 0%";
-      typstStatus("Typst: загружаю wasm (28 МБ)…");
-      const mod = await import("./typst/dist/esm/index.mjs");
-      const wasm = await fetchBytes("./typst/pkg/typst_ts_web_compiler_bg.wasm", (p) => {
-        typstBtn.textContent = `Typst ${Math.round(p * 100)}%`;
-      });
-      typstStatus("Typst: загружаю шрифты…");
-      const fontFiles = [
-        "LiberationSerif-Regular.ttf", "LiberationSerif-Bold.ttf",
-        "LiberationSerif-Italic.ttf", "LiberationSerif-BoldItalic.ttf",
-        "LiberationMono-Regular.ttf",
-      ];
-      const fonts = await Promise.all(fontFiles.map(async (f) => {
-        const r = await fetch("./fonts/" + f);
-        if (!r.ok) throw new Error(`шрифт ${f}: HTTP ${r.status}`);
-        return new Uint8Array(await r.arrayBuffer());
-      }));
-      typstStatus("Typst: запускаю компилятор…");
-      const compiler = mod.createTypstCompiler();
-      await compiler.init({
-        getWrapper: () => import("./typst/pkg/typst_ts_web_compiler.mjs"),
-        getModule: () => ({ module_or_path: wasm }),
-        beforeBuild: [mod.loadFonts(fonts, { assets: false })],
-      });
-      mod.$typst.setCompiler(async () => compiler);
-      typstApi = { mod, compiler, $typst: mod.$typst };
-      typstBtn.textContent = "PDF · Typst";
-      return typstApi;
-    })().catch((e) => {
-      typstLoading = null;
-      typstBtn.textContent = "PDF · Typst";
-      throw e;
-    });
-    return typstLoading;
-  }
-
-  // SVG из gostpadi → PNG 2× через canvas: Typst не умеет SVG.
-  async function svgToPng(svg) {
-    const clone = svg.cloneNode(true);
-    if (!clone.getAttribute("xmlns")) clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    const vb = svg.viewBox?.baseVal;
-    let w = parseFloat(svg.getAttribute("width"));
-    let h = parseFloat(svg.getAttribute("height"));
-    if (!Number.isFinite(w) || w <= 0) w = vb?.width || 800;
-    if (!Number.isFinite(h) || h <= 0) h = vb?.height || 600;
-    clone.setAttribute("width", w);
-    clone.setAttribute("height", h);
-    const url = URL.createObjectURL(new Blob(
-      [new XMLSerializer().serializeToString(clone)],
-      { type: "image/svg+xml;charset=utf-8" },
-    ));
-    try {
-      const img = new Image();
-      await new Promise((res, rej) => {
-        img.onload = res;
-        img.onerror = () => rej(new Error("браузер не смог растеризовать SVG схемы"));
-        img.src = url;
-      });
-      let scale = 2;
-      const limit = 14e6;
-      if (w * h * scale * scale > limit) scale = Math.max(1, Math.sqrt(limit / (w * h)));
-      const c = document.createElement("canvas");
-      c.width = Math.max(1, Math.round(w * scale));
-      c.height = Math.max(1, Math.round(h * scale));
-      const ctx = c.getContext("2d");
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(0, 0, c.width, c.height);
-      ctx.drawImage(img, 0, 0, c.width, c.height);
-      const blob = await new Promise((res) => c.toBlob(res, "image/png"));
-      if (!blob) throw new Error("canvas не отдал PNG схемы");
-      return { bytes: new Uint8Array(await blob.arrayBuffer()), w, h };
-    } finally {
-      URL.revokeObjectURL(url);
-    }
-  }
-
-  async function shotToPng(src) {
-    const img = new Image();
-    await new Promise((res, rej) => {
-      img.onload = res;
-      img.onerror = () => rej(new Error("не удалось прочитать скриншот"));
-      img.src = src;
-    });
-    const scale = Math.min(1, 1800 / img.naturalWidth, 2200 / img.naturalHeight);
-    const c = document.createElement("canvas");
-    c.width = Math.max(1, Math.round(img.naturalWidth * scale));
-    c.height = Math.max(1, Math.round(img.naturalHeight * scale));
-    const ctx = c.getContext("2d");
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(0, 0, c.width, c.height);
-    ctx.drawImage(img, 0, 0, c.width, c.height);
-    const blob = await new Promise((res) => c.toBlob(res, "image/png"));
-    if (!blob) throw new Error("canvas не отдал PNG скриншота");
-    return { bytes: new Uint8Array(await blob.arrayBuffer()), w: img.naturalWidth, h: img.naturalHeight };
-  }
-
-  // Ширина вставки: не растягиваем мельче натурального, вписываем в maxW×maxH.
-  function imageWidthMm(w, h, maxW, maxH) {
-    const wmm = w * 25.4 / 96;
-    const hmm = h * 25.4 / 96;
-    const s = Math.min(1, maxW / wmm, maxH / hmm);
-    return Math.max(25, wmm * s);
-  }
-
-  async function ensureSchemes() {
-    for (let i = 0; i < state.tasks.length; i++) {
-      const t = state.tasks[i];
-      if (!t.code || !t.code.trim() || t.show?.scheme === false) continue;
-      const box = document.querySelector(`.scheme-box[data-scheme="${i}"]`);
-      if (box && !box.querySelector("svg")) {
-        typstStatus(`Typst: рисую схему ${i + 1}…`);
-        await drawScheme(i);
-      }
-    }
-  }
-
-  async function buildTypst() {
-    const m = state.meta || {};
-    const docTitle = m.topic
-      ? `Отчёт по лабораторной работе №${m.labnum} — ${m.topic}`
-      : `Отчёт по лабораторной работе №${m.labnum}`;
-    const L = [];
-    L.push(
-      `#set document(title: ${tstr(docTitle)}, author: ${tstr(m.name)})`,
-      `#set page(paper: "a4", margin: (top: 20mm, right: 10mm, bottom: 20mm, left: 20mm), numbering: "1", number-align: center)`,
-      `#set text(font: ("Liberation Serif",), size: 14pt, lang: "ru", hyphenate: true)`,
-      `#set par(justify: true, leading: 0.5em, first-line-indent: (amount: 1.25cm, all: true))`,
-      `#set heading(numbering: none)`,
-      `#show heading: set text(weight: "bold")`,
-      `#show heading: set par(first-line-indent: 0mm, justify: false)`,
-      `#let pMin = ${tstr(m.min)}`,
-      `#let pCity = ${tstr(m.city)}`,
-      `#let pInst = ${tstr(m.inst)}`,
-      `#let pVuz = ${tstr(m.vuz)}`,
-      `#let pLab = ${tstr(m.labnum)}`,
-      `#let pTopic = ${tstr(m.topic)}`,
-      `#let pCourse = ${tstr(m.course)}`,
-      `#let pVariant = ${tstr(m.variant)}`,
-      `#let pGroup = ${tstr(m.group)}`,
-      `#let pName = ${tstr(m.name)}`,
-      `#let pTeacher = ${tstr(m.teacher)}`,
-      `#let pPlace = ${tstr(m.place)}`,
-      `#let pGoal = ${tstr(state.goal || m.goal || "")}`,
-    );
-
-    L.push(`#{
-  set page(numbering: none)
-  set par(justify: false, leading: 0.5em, first-line-indent: 0mm)
-  align(center)[
-    #text(size: 14pt)[#pMin #linebreak() #pCity #linebreak() #pInst #linebreak() #pVuz]
-  ]
-  v(1fr)
-  align(center)[
-    #text(size: 16pt, weight: "bold")[Лабораторная работа № #pLab]
-    #v(8pt)
-    #if pTopic != "" [
-      #text(size: 14pt, weight: "bold")[«#pTopic»]
-      #v(4pt)
-    ]
-    #text(size: 14pt)[по дисциплине «#pCourse»]
-    #if pVariant != "" [
-      #v(4pt)
-      #text(size: 14pt, weight: "bold")[Вариант #pVariant]
-    ]
-    #v(12pt)
-    #text(size: 14pt, weight: "bold")[Учебная группа #pGroup]
-  ]
-  v(1fr)
-  grid(columns: (1.15fr, 1fr), [], [
-    *Выполнил:* #pName #linebreak()
-    *Проверил:* #pTeacher
-  ])
-  v(1fr)
-  align(center)[#pPlace]
-  pagebreak()
-}
-#counter(page).update(2)`);
-
-    if (String(state.goal || m.goal || "").trim()) {
-      L.push(`#heading(level: 1)[Цель работы]`, `#pGoal`);
-    }
-
-    const shadows = new Map();
-    for (let i = 0; i < state.tasks.length; i++) {
-      const t = state.tasks[i];
-      const on = (k) => !t.show || t.show[k] !== false;
-      L.push(`#heading(level: 1)[Задание №${i + 1}]`);
-
-      if (on("desc") && String(t.condition || "").trim()) {
-        L.push(`#heading(level: 2)[Описание задания]`,
-          `#let pCond${i} = ${tstr(t.condition)}`, `#pCond${i}`);
-      }
-      if (on("code") && String(t.code || "").trim()) {
-        L.push(`#heading(level: 2)[Код программы]`,
-          `#let pCode${i} = ${tstr(t.code)}`,
-          `#block(width: 100%, fill: luma(247), stroke: 0.5pt + luma(170), radius: 2pt, inset: 6pt)[
-  #set text(font: ("Liberation Mono",), size: 9pt, lang: "ru")
-  #set par(justify: false, leading: 0.55em, spacing: 0.55em, first-line-indent: 0mm)
-  #set raw(tab-size: 2)
-  #raw(pCode${i}, block: true)
-]`);
-      }
-      if (on("output") && String(t.output || "").trim()) {
-        L.push(`#heading(level: 2)[Вывод программы]`,
-          `#let pOut${i} = ${tstr(t.output)}`,
-          `#block(width: 100%, fill: luma(250), stroke: 0.5pt + luma(185), radius: 2pt, inset: 6pt)[
-  #set text(font: ("Liberation Mono",), size: 9pt, lang: "ru")
-  #set par(justify: false, leading: 0.55em, first-line-indent: 0mm)
-  #raw(pOut${i}, block: true)
-]`);
-      }
-      if (on("shots") && t.shots?.length) {
-        L.push(`#heading(level: 2)[Скриншоты результатов выполнения задания]`);
-        for (let j = 0; j < t.shots.length; j++) {
-          const png = await shotToPng(t.shots[j]);
-          const path = `/labpad/shot-${i}-${j}.png`;
-          shadows.set(path, png.bytes);
-          const width = imageWidthMm(png.w, png.h, 160, 110);
-          L.push(`#align(center)[#image(${tstr(path)}, width: ${width.toFixed(1)}mm)]`, `#v(4pt)`);
-        }
-      }
-      if (on("scheme") && String(t.code || "").trim()) {
-        const svg = document.querySelector(`.scheme-box[data-scheme="${i}"] svg`);
-        if (svg) {
-          const png = await svgToPng(svg);
-          const path = `/labpad/scheme-${i}.png`;
-          shadows.set(path, png.bytes);
-          const width = imageWidthMm(png.w, png.h, 170, 210);
-          L.push(`#pagebreak()`, `#heading(level: 2)[Блок схема программы]`,
-            `#align(center)[#image(${tstr(path)}, width: ${width.toFixed(1)}mm)]`);
-        }
-      }
-    }
-    return { doc: L.join("\n\n"), shadows };
-  }
-
-  function diagLine(d) {
-    if (!d || typeof d !== "object") return String(d);
-    const where = [d.path, d.range].filter(Boolean).join(":");
-    return (where ? where + ": " : "") + (d.severity || "error") + ": " + (d.message || JSON.stringify(d));
-  }
-
-  async function typstPdf() {
-    const api = await loadTypst();
-    await ensureSchemes();
-    typstStatus("Typst: собираю документ…");
-    const { doc, shadows } = await buildTypst();
-    for (const [path, bytes] of shadows) await api.$typst.mapShadow(path, bytes);
-    await api.$typst.addSource(TYPST_MAIN, doc);
-    typstStatus("Typst: верстаю PDF…");
-    let bytes = null, compileError = null;
-    try {
-      bytes = await api.$typst.pdf({ mainFilePath: TYPST_MAIN });
-    } catch (e) {
-      compileError = e;
-    }
-    if (!bytes) {
-      let res = null;
-      try {
-        res = await api.compiler.compile({ mainFilePath: TYPST_MAIN, format: 1, diagnostics: "full" });
-      } catch (e) {
-        compileError = compileError || e;
-      }
-      const diags = Array.isArray(res?.diagnostics) ? res.diagnostics : res?.diagnostics ? [res.diagnostics] : [];
-      const text = diags.map(diagLine).join("\n");
-      if (!res?.result) {
-        const fallback = compileError?.message || (compileError != null ? String(compileError) : "");
-        throw new Error(text || fallback || "Typst: ошибка компиляции без текста диагностики");
-      }
-      bytes = res.result;
-    }
-    const name = String(state.meta?.labnum || "").trim().replace(/[^\wа-яёА-ЯЁ.-]+/g, "-").replace(/^[-.]+|[-.]+$/g, "");
-    const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `labpad-${name || "report"}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 30000);
-    return bytes;
-  }
-
-  typstBtn.onclick = async () => {
-    if (typstBusy) return;
-    typstBusy = true;
-    typstBtn.disabled = true;
-    $("#typst-err").hidden = true;
-    try {
-      const bytes = await typstPdf();
-      typstStatus(`PDF готов · ${(bytes.length / 1024 / 1024).toFixed(2)} МБ`);
-    } catch (e) {
-      const msg = e?.message || String(e);
-      const loading = /wasm|шрифт|компилятор|HTTP|import/i.test(msg) && !/main\.typ|error:/i.test(msg);
-      const shown = (loading ? "Typst не загрузился: " : "Typst: ") + msg;
-      typstStatus(shown, true);
-      showTypstError(msg);
-      console.error(e);
-    } finally {
-      typstBusy = false;
-      typstBtn.disabled = false;
-      typstBtn.textContent = "PDF · Typst";
-    }
-  };
 
   renderTitle();
   renderTasks();
