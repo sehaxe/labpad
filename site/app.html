@@ -126,8 +126,14 @@
   .field input,.field textarea{width:100%;background:var(--soft);border:1px solid var(--line);border-radius:var(--r);color:var(--ink);font:13px/1.4 var(--mono);padding:6px 8px}
   .field input:focus,.field textarea:focus{outline:none;border-color:var(--line2);background:var(--bg)}
   .field textarea{resize:vertical;min-height:54px}
-  .scheme-box svg{display:block;width:100%;height:auto;max-height:150mm;margin:0 auto}
+  /* размер схемы задаёт JS общим коэффициентом на всю лабу: растягивать
+     одну схему на всю ширину нельзя — блоки разойдутся с соседними */
+  .scheme-box svg{display:block;margin:0 auto}
   .scheme-box .slot{margin:0}
+  .fig{margin:0 0 6mm}
+  .fig:last-child{margin-bottom:0}
+  .fig svg{display:block;margin:0 auto}
+  .fig figcaption{font:9pt/1.4 var(--mono);color:#666;text-align:center;margin-top:2mm}
   .run{font-family:var(--mono);font-size:9pt;margin:1mm 0 2mm}
   .runbar{display:flex;align-items:center;gap:2mm;flex-wrap:wrap;margin-bottom:1.5mm}
   .runbar label{color:#888;font-size:8.5pt}
@@ -161,11 +167,12 @@
     .sheet:last-child,.sheet.sheet-last{page-break-after:auto;break-after:auto}
     .slot{border-color:#bbb}
     .sec{page-break-inside:auto}
-    .blk,.shot,.scheme-box{page-break-inside:avoid;break-inside:avoid}
+    .blk,.shot,.fig{page-break-inside:avoid;break-inside:avoid}
+    .fig figcaption{font-size:9pt}
     .blk[data-blk="scheme"]{break-inside:avoid}
     /* схема — на своей странице и во всю её высоту: иначе высокая схема
        вписывается в 150 мм и кегль становится нечитаемым */
-    .scheme-box svg{max-height:255mm;width:auto;max-width:100%}
+
     h2,h3{page-break-after:avoid}
     html,body{background:#fff}
   }
@@ -618,26 +625,49 @@ int main(void) {
     const tasks = idx.map(([, t]) => t);
     try {
       await loadEngine();
-      const [ip, il] = wasmInput(packInputs(tasks.map((t, k) => ({ name: `task${k + 1}.c`, text: t.code }))));
+      const inputs = idx.map(([i, t]) => ({ i, text: t.code }));
+      const [ip, il] = wasmInput(packInputs(inputs.map(({ i, text }) => ({ name: `t${i}.c`, text }))));
       const lp = wasm.gostpadi_alloc(4);
       const out = wasm.gostpadi_render_batch(ip, il, tasks.length, 1, 12, lp);
       const r = readOut(out, lp);
       wasm.gostpadi_free(ip, il); wasm.gostpadi_free(lp, 4);
       if (out) wasm.gostpadi_free(out, r.n);
       const j = JSON.parse(r.json || '{"ok":false}');
-      idx.forEach(([i, t], k) => {
+      // движок отдаёт по файлу на схему: main — имя входа, функции —
+      // «вход#имя». Собираем все схемы задачи (функции + main) в один блок.
+      const files = j.files || [];
+      idx.forEach(([i, t]) => {
         const box = document.querySelector(`.scheme-box[data-scheme="${i}"]`);
         const note = document.querySelector(`.scheme-actions [data-draw="${i}"]`)?.parentElement.querySelector(".scheme-note");
         if (!box || state.tasks[i] !== t) return;
-        const f = j.files?.[k];
-        if (!f || !f.sheets?.length) {
+        const prefix = `t${i}.c`;
+        const mine = files
+          .filter((f) => f.name === prefix || String(f.name).startsWith(prefix + "#"))
+          .filter((f) => f.sheets?.length);
+        if (!mine.length) {
           box.innerHTML = `<div class="slot">${esc(j.errors?.[0]?.msg || j.empty?.[0]?.msg || "движок не смог нарисовать")}</div>`;
           if (note) note.textContent = "ошибка";
           return;
         }
-        box.innerHTML = f.sheets[0];
-        if (note) note.textContent = `${f.sheets.length} лист${f.sheets.length === 1 ? "" : "а"} · ГОСТ 19.701-90`;
+        const figs = [];
+        for (const f of mine) {
+          const scheme = f.name === prefix ? "" : String(f.name).slice(prefix.length + 1);
+          f.sheets.forEach((sheet, si) => {
+            figs.push({ sheet, scheme, si, total: f.sheets.length });
+          });
+        }
+        box.innerHTML = figs
+          .map(
+            (f) =>
+              `<figure class="fig" data-scheme="${esc(f.scheme)}" data-sheet="${f.si + 1}" data-sheets="${f.total}">${f.sheet}<figcaption></figcaption></figure>`
+          )
+          .join("");
+        box.dataset.sheets = String(figs.length);
+        const word = figs.length === 1 ? "лист" : figs.length < 5 ? "листа" : "листов";
+        if (note) note.textContent = `${figs.length} ${word} · ГОСТ 19.701-90`;
       });
+      renumberFigures();
+      fitSchemes();
     } catch (e) {
       idx.forEach(([i]) => {
         const box = document.querySelector(`.scheme-box[data-scheme="${i}"]`);
@@ -767,7 +797,61 @@ int main(void) {
 
   /* Печать: пустые блоки не печатаем, «или вставить вручную» — раскрываем,
      чтобы вывод, посчитанный облаком, попал в отчёт. */
+  /* Подписи рисунков: сквозная нумерация по документу, с привязкой
+     к заданию и номером листа, если схема разбита на несколько. */
+  function renumberFigures() {
+    let n = 0;
+    document.querySelectorAll(".task").forEach((task) => {
+      const k = +task.dataset.i + 1;
+      const figs = [...task.querySelectorAll(".fig")];
+      figs.forEach((fig, j) => {
+        n += 1;
+        const cap = fig.querySelector("figcaption");
+        if (!cap) return;
+        const scheme = fig.dataset.scheme || "";
+        const total = +(fig.dataset.sheets || 1);
+        const sheet = +(fig.dataset.sheet || 1);
+        const parts = [`Рисунок ${n} — к заданию ${k}`];
+        if (scheme) parts.push(`функция ${scheme}`);
+        if (total > 1) parts.push(`лист ${sheet} из ${total}`);
+        cap.textContent = parts.join(", ");
+      });
+    });
+  }
+
+  /* Единый масштаб на всю лабу: движок уже дал одинаковые блоки в pt,
+     но если вставлять схемы с width:100%, узкая растянется сильнее
+     широкой и блоки разойдутся. Считаем один коэффициент на все схемы
+     (по самой широкой/высокой) и ставим натуральные размеры. */
+  function fitSchemes() {
+    const list = [...document.querySelectorAll(".scheme-box svg")];
+    if (!list.length) return;
+    const size = (s) => {
+      const w = parseFloat(s.getAttribute("width")) || s.viewBox?.baseVal?.width || 0;
+      const h = parseFloat(s.getAttribute("height")) || s.viewBox?.baseVal?.height || 0;
+      return { s, w, h };
+    };
+    const items = list.map(size).filter((x) => x.w > 0 && x.h > 0);
+    if (!items.length) return;
+    // лист: 180 мм по ширине полей, 255 мм по высоте
+    const PAGE_W = 510.24, PAGE_H = 722.8;
+    // масштаб общий: по самой широкой и самой высокой схеме лабы;
+    // сверху ограничен 2× — крошечная схема не должна вырасти в плакат
+    const k = Math.min(
+      2,
+      PAGE_W / Math.max(...items.map((x) => x.w)),
+      PAGE_H / Math.max(...items.map((x) => x.h))
+    );
+    for (const { s, w } of items) {
+      s.style.width = (w * k).toFixed(3) + "pt";
+      s.style.height = "auto";
+      s.style.maxWidth = "none";
+      s.style.maxHeight = "none";
+    }
+  }
+
   function preparePrint() {
+    fitSchemes();
     document.querySelectorAll("details").forEach((d) => { d.open = true; });
     document.querySelectorAll(".task .blk").forEach((blk) => {
       const kind = blk.dataset.blk;
