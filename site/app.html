@@ -91,6 +91,9 @@
   .tit .group{font-size:12pt;margin-bottom:14mm}
   .tit .who{font-size:12pt;line-height:1.8;text-align:left;margin-left:auto;width:58%}
   .tit .who b{font-weight:400;color:#000}
+  .ed{cursor:text;border-radius:2px;outline:none;transition:background-color .12s ease}
+  .ed:hover{background:rgba(0,122,255,.06)}
+  .ed:focus{background:rgba(0,122,255,.1);box-shadow:0 0 0 1px rgba(0,122,255,.35)}
   .tit .place{margin-top:auto;font-size:12pt}
   /* секции отчёта */
   .sec{margin:0 0 6mm;page-break-inside:avoid}
@@ -127,6 +130,7 @@
   .runbtn{white-space:nowrap}
   .autorun{display:inline-flex;align-items:center;gap:1mm;cursor:pointer}
   .runstate{color:#999;font-size:8.5pt}
+  .runhint{display:inline-flex;align-items:center;justify-content:center;width:3.5mm;height:3.5mm;border:1px solid #bbb;border-radius:50%;color:#999;font-size:7pt;cursor:help}
   .runout{font:9pt/1.4 var(--mono);background:#111;color:#e6e6e6;padding:2.5mm;border-radius:2px;margin:0;min-height:8mm;white-space:pre-wrap;word-break:break-word;max-height:60mm;overflow:auto}
   .runout:empty:before{content:"вывод появится здесь";color:#777}
   .runout.err{color:#ffb4b4}
@@ -189,19 +193,19 @@
     <article class="sheet" id="sheet-title">
       <div class="pagebody">
         <div class="tit">
-          <div class="min" id="t-min">Министерство образования Республики Беларусь</div>
-          <div class="city" id="t-city">г. Минск</div>
-          <div class="inst" id="t-inst">Государственное учреждение образования</div>
-          <div class="vuz" id="t-vuz">«Белорусский государственный университет информатики и радиоэлектроники»</div>
-          <div class="lab" id="t-lab">Лабораторная работа № 1</div>
-          <div class="topic" id="t-topic">«Тема»</div>
-          <div class="course" id="t-course">по дисциплине «Основы алгоритмизации и программирования»</div>
-          <div class="group" id="t-group">Вариант 1 · Учебная группа 000000</div>
+          <div class="min ed" data-field="min" contenteditable="true" spellcheck="false">Министерство образования Республики Беларусь</div>
+          <div class="city ed" data-field="city" contenteditable="true" spellcheck="false">г. Минск</div>
+          <div class="inst ed" data-field="inst" contenteditable="true" spellcheck="false">Государственное учреждение образования</div>
+          <div class="vuz ed" data-field="vuz" contenteditable="true" spellcheck="false">«Белорусский государственный университет информатики и радиоэлектроники»</div>
+          <div class="lab">Лабораторная работа № <span class="ed" data-field="labnum" contenteditable="true" spellcheck="false">1</span></div>
+          <div class="topic">«<span class="ed" data-field="topic" contenteditable="true" spellcheck="false">Тема</span>»</div>
+          <div class="course">по дисциплине «<span class="ed" data-field="course" contenteditable="true" spellcheck="false">Основы алгоритмизации и программирования</span>»</div>
+          <div class="group">Вариант <span class="ed" data-field="variant" contenteditable="true" spellcheck="false">1</span> · Учебная группа <span class="ed" data-field="group" contenteditable="true" spellcheck="false">000000</span></div>
           <div class="who">
-            <div>Выполнил: <b id="t-name">—</b></div>
-            <div>Проверил: <b id="t-teacher">—</b></div>
+            <div>Выполнил: <b class="ed" data-field="name" contenteditable="true" spellcheck="false">—</b></div>
+            <div>Проверил: <b class="ed" data-field="teacher" contenteditable="true" spellcheck="false">—</b></div>
           </div>
-          <div class="place" id="t-place">Минск 2026</div>
+          <div class="place ed" data-field="place" contenteditable="true" spellcheck="false">Минск 2026</div>
         </div>
       </div>
     </article>
@@ -328,6 +332,18 @@
     });
   }
   $("#pname").addEventListener("input", (e) => { state.name = e.target.value; save(); });
+  document.querySelectorAll(".tit .ed[data-field]").forEach((el) => {
+    el.addEventListener("input", () => {
+      const k = el.dataset.field;
+      state.meta[k] = el.textContent.trim();
+      const f = document.getElementById("f-" + k);
+      if (f && document.activeElement !== f) f.value = state.meta[k];
+      save();
+    });
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); el.blur(); }
+    });
+  });
   $("#goal").addEventListener("input", (e) => { state.goal = e.target.innerText; save(); });
 
   // задания
@@ -357,6 +373,7 @@
             <button class="mini runbtn" data-runbtn="${i}">запустить</button>
             <label class="autorun"><input type="checkbox" data-auto="${i}" ${t.autoRun === false ? "" : "checked"}> авто</label>
             <span class="runstate"></span>
+            <span class="runhint" title="Без локального runner вывод считается в публичном облаке Judge0">?</span>
           </div>
           <pre class="runout" data-runout="${i}"></pre>
         </div>
@@ -554,8 +571,28 @@
       if (note) note.textContent = "ошибка";
     }
   }
-  /* ---------- локальный запуск C (labpad-runner) ---------- */
+  /* ---------- запуск C: локальный runner, иначе облако (Judge0) ---------- */
   const RUNNER = "http://127.0.0.1:8788";
+  const CLOUD = "https://ce.judge0.com/submissions?base64_encoded=false&wait=true";
+  async function runCloud(code, stdin) {
+    const r = await fetch(CLOUD, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ source_code: code, language_id: 50, stdin }),
+    });
+    if (!r.ok) throw new Error("облако ответило " + r.status);
+    const j = await r.json();
+    const compile = j.compile_output || (j.status && j.status.id === 6 ? j.message : "");
+    return {
+      ok: !compile && j.status && j.status.id === 3,
+      stdout: j.stdout || "",
+      stderr: j.stderr || "",
+      compile,
+      status: j.status?.description || "",
+      ms: Math.round((parseFloat(j.time) || 0) * 1000),
+      compiler: "Judge0 · C (GCC)",
+    };
+  }
   let runnerOk = null, runTimer = null;
   async function runnerCheck() {
     if (runnerOk !== null) return runnerOk;
@@ -575,40 +612,42 @@
     if (!out) return;
     const code = (t.code || "").trim();
     if (!code) { out.textContent = "сначала вставь код"; return; }
-    const ok = await runnerCheck();
-    if (!ok) {
-      out.classList.add("err");
-      out.textContent = "локальный запуск не найден.\nЗапусти runner: cd labpad/runner && cargo run --release\nили вставь вывод вручную ниже.";
-      return;
-    }
+    const local = await runnerCheck();
     out.classList.remove("err");
-    if (st) st.textContent = auto ? "запускаю…" : "компилирую…";
+    if (st) st.textContent = local ? (auto ? "запускаю…" : "компилирую…") : "облако: компилирую…";
+    let j;
     try {
-      const r = await fetch(RUNNER + "/run", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, stdin: t.stdin || "" }),
-      });
-      const j = await r.json();
-      if (!j.ok) {
-        out.classList.add("err");
-        out.textContent = (j.error || "ошибка") + (j.stderr ? "\n" + j.stderr : "");
-        if (st) st.textContent = "ошибка";
-        return;
+      if (local) {
+        const r = await fetch(RUNNER + "/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code, stdin: t.stdin || "" }),
+        });
+        j = await r.json();
+      } else {
+        j = await runCloud(code, t.stdin || "");
+        if (j.compile) j.error = "ошибка компиляции";
+        if (!j.ok && !j.compile && !j.stderr) j.error = j.status || "ошибка выполнения";
       }
-      out.textContent = j.stdout || (j.stderr ? j.stderr : "(программа ничего не вывела)");
-      // вывод программы — это и есть раздел «Вывод» в отчёте
-      state.tasks[i].output = out.textContent;
-      const manual = document.querySelector(`[data-run="${i}"]`)?.parentElement.querySelector(".out");
-      if (manual) manual.textContent = out.textContent;
-      save();
-      if (st) st.textContent = `${j.ms} мс · ${j.compiler}`;
-      if (j.error) { out.classList.add("err"); if (st) st.textContent = j.error; }
     } catch (e) {
       out.classList.add("err");
-      out.textContent = "не удалось связаться с runner: " + e.message;
+      out.textContent = "не удалось выполнить: " + e.message;
       if (st) st.textContent = "нет связи";
+      return;
     }
+    if (!j.ok) {
+      out.classList.add("err");
+      out.textContent = (j.error || "ошибка") + (j.compile ? "\n" + j.compile : "") + (j.stderr ? "\n" + j.stderr : "");
+      if (st) st.textContent = "ошибка";
+      return;
+    }
+    out.textContent = j.stdout || (j.stderr ? j.stderr : "(программа ничего не вывела)");
+    // вывод программы — это и есть раздел «Вывод» в отчёте
+    state.tasks[i].output = out.textContent;
+    const manual = document.querySelector(`[data-run="${i}"]`)?.parentElement.querySelector(".out");
+    if (manual) manual.textContent = out.textContent;
+    save();
+    if (st) st.textContent = `${j.ms} мс · ${j.compiler}`;
   }
   function scheduleRun(i) {
     const t = state.tasks[i];
