@@ -16,19 +16,16 @@
     --bg:#fdfcfc; --soft:#f8f7f7; --card:#f1eeee;
     --ink:#201d1d; --ink-deep:#0f0000; --body:#424245; --mute:#646262; --faint:#9a9898;
     --line:rgba(15,0,0,.12); --line2:#646262;
-    --dark:#201d1d; --dark2:#302c2c; --on-dark:#fdfcfc; --on-dark-mute:#9a9898;
-    --paper:#ffffff; --paper-ink:#111; --paper-line:rgba(0,0,0,.18);
-    --accent:#007aff; --ok:#30d158; --warn:#ff9f0a; --err:#ff3b30;
-    --r:4px;
-    --sheet-w:210mm;
+    --paper:#ffffff; --paper-ink:#111; --paper-line:rgba(0,0,0,.2);
+    --accent:#007aff; --ok:#30d158;
+    --r:4px; --sheet-w:210mm;
   }
   html[data-theme="dark"]{
     color-scheme: dark;
     --bg:#161313; --soft:#1d1919; --card:#241f1f;
     --ink:#fdfcfc; --ink-deep:#ffffff; --body:#c9c5c5; --mute:#9a9898; --faint:#6e6e73;
     --line:rgba(253,252,252,.12); --line2:#9a9898;
-    --dark:#0f0d0d; --dark2:#1b1818; --on-dark:#fdfcfc; --on-dark-mute:#9a9898;
-    --paper:#fdfcfc; --paper-ink:#111; --paper-line:rgba(0,0,0,.18);
+    --paper:#fdfcfc; --paper-ink:#111; --paper-line:rgba(0,0,0,.2);
     --accent:#4da3ff;
   }
   @media (prefers-color-scheme: dark){
@@ -37,8 +34,7 @@
       --bg:#161313; --soft:#1d1919; --card:#241f1f;
       --ink:#fdfcfc; --ink-deep:#ffffff; --body:#c9c5c5; --mute:#9a9898; --faint:#6e6e73;
       --line:rgba(253,252,252,.12); --line2:#9a9898;
-      --dark:#0f0d0d; --dark2:#1b1818; --on-dark:#fdfcfc; --on-dark-mute:#9a9898;
-      --paper:#fdfcfc; --paper-ink:#111; --paper-line:rgba(0,0,0,.18);
+      --paper:#fdfcfc; --paper-ink:#111; --paper-line:rgba(0,0,0,.2);
       --accent:#4da3ff;
     }
   }
@@ -46,6 +42,7 @@
   html,body{height:100%}
   body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--mono);-webkit-font-smoothing:antialiased}
   button{font:inherit}
+  a{color:inherit}
   header{border-bottom:1px solid var(--line);height:52px;display:flex;align-items:center;gap:14px;padding:0 16px}
   .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;text-decoration:none;color:var(--ink)}
   .logo .mark{width:9px;height:9px;border:1px solid var(--ink);border-radius:2px;position:relative}
@@ -58,9 +55,8 @@
   .btn:hover{background:var(--soft)}
   .btn-g{border-color:var(--line2)}
   .btn-p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-  .btn-p:hover{background:var(--ink)}
   .btn-p:active{background:var(--ink-deep)}
-  .iconbtn{width:30px;height:30px;justify-content:center;padding:0}
+  .iconbtn{width:30px;justify-content:center;padding:0}
   .layout{display:grid;grid-template-columns:230px minmax(0,1fr) 300px;height:calc(100% - 52px)}
   aside{border-right:1px solid var(--line);padding:14px 12px;overflow:auto}
   aside.right{border-right:0;border-left:1px solid var(--line)}
@@ -74,35 +70,43 @@
   .stage{overflow:auto;padding:26px 18px 60px;background:var(--soft)}
   .sheet{
     width:min(var(--sheet-w),100%);min-height:297mm;margin:0 auto 18px;background:var(--paper);color:var(--paper-ink);
-    font-family:var(--serif);font-size:14pt;line-height:1.5;
-    box-shadow:0 0 0 1px var(--paper-line);
+    font-family:var(--serif);font-size:14pt;line-height:1.5;box-shadow:0 0 0 1px var(--paper-line);
     padding:20mm 10mm 20mm 20mm;
   }
   html[data-theme="dark"] .sheet{box-shadow:0 0 0 1px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35)}
-  .sheet .pagebody{max-width:100%;min-height:calc(297mm - 40mm);display:flex;flex-direction:column}
-  .tit{ text-align:center; margin:0; flex:1; display:flex; flex-direction:column; }
-  .tit .year{margin-top:auto}
-  .tit .min{font-size:11pt;line-height:1.35;margin-bottom:14mm;text-transform:uppercase}
-  .tit .vuz{font-size:12pt;margin-bottom:2mm}
-  .tit h1{font-size:18pt;letter-spacing:.08em;margin:16mm 0 3mm;font-weight:700}
-  .tit .lab{font-size:14pt;margin:0 0 16mm}
-  .tit .who{font-size:12pt;line-height:1.8;text-align:left;margin-left:auto;width:60%;margin-bottom:auto}
+  .pagebody{max-width:100%;min-height:calc(297mm - 40mm);display:flex;flex-direction:column}
+  /* титул */
+  .tit{text-align:center;flex:1;display:flex;flex-direction:column}
+  .tit .min{font-size:12pt;line-height:1.4;margin-bottom:10mm}
+  .tit .city{font-size:12pt;margin-bottom:14mm}
+  .tit .inst{font-size:12pt;line-height:1.4;margin-bottom:4mm}
+  .tit .vuz{font-size:13pt;margin-bottom:26mm}
+  .tit .lab{font-size:15pt;font-weight:700;margin-bottom:4mm}
+  .tit .topic{font-size:13pt;margin-bottom:16mm}
+  .tit .group{font-size:12pt;margin-bottom:18mm}
+  .tit .who{font-size:12pt;line-height:1.8;text-align:left;margin-left:auto;width:58%}
   .tit .who b{font-weight:400;color:#000}
-  .tit .year{font-size:12pt;margin-top:22mm}
-  .task{margin-top:8mm;page-break-inside:avoid}
-  .task h2{font-size:14pt;margin:0 0 3mm;font-weight:700}
-  .task h3{font-size:13pt;margin:6mm 0 2mm;font-weight:700}
-  .task .cond{white-space:pre-wrap;margin:0 0 4mm}
-  .task .code{font:10pt/1.4 var(--mono);background:#f7f7f7;border:1px solid var(--paper-line);padding:3mm;white-space:pre-wrap;word-break:break-word;border-radius:2px}
-  .scheme-slot{border:1px dashed var(--paper-line);padding:10mm 4mm;text-align:center;color:#777;font-size:10pt;margin:2mm 0 4mm}
-  .shot-slot{border:1px dashed var(--paper-line);padding:6mm 4mm;text-align:center;color:#777;font-size:10pt}
+  .tit .place{margin-top:auto;font-size:12pt}
+  /* секции отчёта */
+  .sec{margin:0 0 6mm;page-break-inside:avoid}
+  .sec h2{font-size:14pt;margin:0 0 3mm;font-weight:700}
+  .sec h3{font-size:13pt;margin:5mm 0 2mm;font-weight:700}
+  .sec p{margin:0 0 2mm;white-space:pre-wrap}
+  .code{font:10pt/1.45 var(--mono);background:#f7f7f7;border:1px solid var(--paper-line);padding:3mm;white-space:pre-wrap;word-break:break-word;border-radius:2px;min-height:20mm}
+  [contenteditable]:empty:before{content:attr(data-ph);color:#999;white-space:pre-wrap}
+  .out{font:10pt/1.45 var(--mono);background:#fbfbfb;border:1px solid var(--paper-line);border-left:3px solid #bbb;padding:3mm;white-space:pre-wrap;word-break:break-word;border-radius:2px;min-height:14mm;color:#222}
+  .shots{display:flex;flex-wrap:wrap;gap:3mm;margin:2mm 0}
+  .shot{border:1px solid var(--paper-line);padding:2mm;max-width:100%;font:10pt var(--mono);color:#777}
+  .shot img{display:block;max-width:100%;max-height:60mm}
+  .shots.over{outline:2px dashed var(--accent);outline-offset:3px}
+  .shot-add{cursor:pointer}
+  .slot{border:1px dashed var(--paper-line);padding:9mm 4mm;text-align:center;color:#888;font-size:10pt;margin:2mm 0}
   .field{margin-bottom:10px}
   .field label{display:block;font-size:11px;color:var(--faint);margin-bottom:4px}
   .field input,.field textarea{width:100%;background:var(--soft);border:1px solid var(--line);border-radius:var(--r);color:var(--ink);font:13px/1.4 var(--mono);padding:6px 8px}
   .field input:focus,.field textarea:focus{outline:none;border-color:var(--line2);background:var(--bg)}
   .field textarea{resize:vertical;min-height:54px}
   .note{font-size:11px;color:var(--faint);line-height:1.6;border-top:1px solid var(--line);padding-top:10px;margin-top:14px}
-  .badge{font-size:10px;border:1px solid var(--line);border-radius:var(--r);padding:1px 5px;color:var(--faint)}
   .status{border-top:1px solid var(--line);height:30px;display:flex;align-items:center;gap:10px;padding:0 14px;font-size:11px;color:var(--mute)}
   .status .ok{color:var(--ok)}
   @media print{
@@ -110,9 +114,10 @@
     header,aside,.status{display:none!important}
     .layout{display:block;height:auto}
     .stage{padding:0;background:#fff;overflow:visible}
-    .sheet{width:210mm;min-height:297mm;box-shadow:none;margin:0;padding:20mm 10mm 20mm 20mm;page-break-after:always}
+    .sheet{width:210mm;min-height:297mm;box-shadow:none;margin:0;page-break-after:always;padding:20mm 10mm 20mm 20mm}
     .sheet:last-child{page-break-after:auto}
-    .scheme-slot,.shot-slot{border-color:#bbb}html,body{background:#fff}
+    .slot{border-color:#bbb}
+    html,body{background:#fff}
   }
   @media (max-width:1100px){
     .layout{grid-template-columns:200px minmax(0,1fr)}
@@ -129,7 +134,7 @@
 <body>
 <header>
   <a class="logo" href="./index.html"><span class="mark"></span>labpad</a>
-  <input class="pname" id="pname" value="Отчёт по лабораторной" aria-label="Название проекта">
+  <input class="pname" id="pname" value="Лабораторная работа № 1" aria-label="Название проекта">
   <span class="spacer"></span>
   <button class="btn btn-g iconbtn" id="theme" title="Тема: авто">◐</button>
   <button class="btn btn-g" id="print">PDF / печать</button>
@@ -141,69 +146,79 @@
     <ul class="tree" id="tree">
       <li class="on" data-view="title"><span class="num">00</span> Титульный лист</li>
     </ul>
-    <button class="btn addbtn" id="addtask">+ задача</button>
-    <p class="note">Карточка задания: условие, схема из gostpadi, код и скриншот результата.<br><br>Схемы и PDF подключаются на следующем шаге — сейчас каркас и титул.</p>
+    <button class="btn addbtn" id="addtask">+ задание</button>
+    <p class="note">Порядок блоков как в методичке: описание → код → вывод → скриншоты → блок-схема.</p>
   </aside>
 
   <main class="stage" id="stage">
-    <article class="sheet" id="sheet">
+    <article class="sheet" id="sheet-title">
       <div class="pagebody">
         <div class="tit">
-          <div class="min" id="t-min">Министерство науки и высшего образования<br>Российской Федерации</div>
-          <div class="vuz" id="t-vuz">Национальный исследовательский университет</div>
-          <div class="vuz" id="t-dep">Кафедра информатики</div>
-          <h1>ОТЧЁТ</h1>
-          <p class="lab" id="t-lab">по лабораторной работе № 1<br>по дисциплине «Основы алгоритмизации и программирования»</p>
+          <div class="min" id="t-min">Министерство образования Республики Беларусь</div>
+          <div class="city" id="t-city">г. Минск</div>
+          <div class="inst" id="t-inst">Государственное учреждение образования</div>
+          <div class="vuz" id="t-vuz">«Белорусский государственный университет информатики и радиоэлектроники»</div>
+          <div class="lab" id="t-lab">Лабораторная работа № 1</div>
+          <div class="topic" id="t-topic">Тема: —</div>
+          <div class="group" id="t-group">Учебная группа 000000</div>
           <div class="who">
-            <div>Выполнил: <b id="t-name">Иванов Иван Иванович</b></div>
-            <div>Группа: <b id="t-group">ИС-21</b></div>
-            <div>Вариант: <b id="t-var">1</b></div>
-            <div>Проверил: <b id="t-teacher">Петров П. П.</b></div>
+            <div>Выполнил: <b id="t-name">—</b></div>
+            <div>Проверил: <b id="t-teacher">—</b></div>
           </div>
-          <div class="year" id="t-year">2026</div>
+          <div class="place" id="t-place">Минск 2026</div>
         </div>
       </div>
     </article>
+
     <article class="sheet" id="sheet-tasks">
-      <div class="pagebody" id="tasks"></div>
+      <div class="pagebody">
+        <section class="sec">
+          <h2>Цель работы</h2>
+          <p class="goal" id="goal" contenteditable="true" data-f="goal">Цель работы — научиться разрабатывать алгоритмы и писать код на языке Си по составленному алгоритму.</p>
+        </section>
+        <div id="tasks"></div>
+      </div>
     </article>
   </main>
 
   <aside class="right">
     <p class="side-h">Титульный лист</p>
-    <div class="field"><label>Учебное заведение</label><input id="f-vuz"></div>
-    <div class="field"><label>Кафедра</label><input id="f-dep"></div>
-    <div class="field"><label>Лабораторная работа №</label><input id="f-labnum"></div>
-    <div class="field"><label>Дисциплина</label><input id="f-course"></div>
+    <div class="field"><label>Ведомство</label><input id="f-min"></div>
+    <div class="field"><label>Город</label><input id="f-city"></div>
+    <div class="field"><label>Учреждение</label><input id="f-inst"></div>
+    <div class="field"><label>Университет</label><textarea id="f-vuz"></textarea></div>
+    <div class="field"><label>Номер работы</label><input id="f-labnum"></div>
+    <div class="field"><label>Тема</label><input id="f-topic"></div>
+    <div class="field"><label>Учебная группа</label><input id="f-group"></div>
     <div class="field"><label>ФИО студента</label><input id="f-name"></div>
-    <div class="field"><label>Группа</label><input id="f-group"></div>
-    <div class="field"><label>Вариант</label><input id="f-variant"></div>
     <div class="field"><label>Преподаватель</label><input id="f-teacher"></div>
-    <div class="field"><label>Город, год</label><input id="f-year"></div>
-    <p class="note">Поля синхронизированы с листом. Всё сохраняется в браузере автоматически.</p>
+    <div class="field"><label>Город, год</label><input id="f-place"></div>
+    <p class="note">Поля синхронизированы с листом. Всё сохраняется в браузере.</p>
   </aside>
 </div>
-<div class="status"><span id="msg" class="ok">готово</span><span class="spacer"></span><span id="pages">1 лист</span></div>
+<div class="status"><span id="msg" class="ok">готово</span><span class="spacer"></span><span id="pages">2 листа</span></div>
 
 <script>
   const $ = (s) => document.querySelector(s);
-  const KEY = "labpad.project.v1";
+  const KEY = "labpad.project.v2";
   const THEMES = ["auto", "light", "dark"];
   const NAMES = { auto: "авто", light: "светлая", dark: "тёмная" };
 
   const seed = {
-    name: "Отчёт по лабораторной",
+    name: "Лабораторная работа № 1",
     meta: {
-      vuz: "Национальный исследовательский университет",
-      dep: "Кафедра информатики",
+      min: "Министерство образования Республики Беларусь",
+      city: "г. Минск",
+      inst: "Государственное учреждение образования",
+      vuz: "«Белорусский государственный университет информатики и радиоэлектроники»",
       labnum: "1",
-      course: "Основы алгоритмизации и программирования",
-      name: "Иванов Иван Иванович",
-      group: "ИС-21",
-      variant: "1",
-      teacher: "Петров П. П.",
-      year: "2026",
+      topic: "",
+      group: "000000",
+      name: "—",
+      teacher: "—",
+      place: "Минск 2026",
     },
+    goal: "Цель работы — научиться разрабатывать алгоритмы и писать код на языке Си по составленному алгоритму.",
     tasks: [],
   };
 
@@ -216,16 +231,17 @@
       return { ...structuredClone(seed), ...p, meta: { ...seed.meta, ...(p.meta || {}) } };
     } catch { return structuredClone(seed); }
   }
-  let saveTimer;
+  let timer;
   function save() {
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
       localStorage.setItem(KEY, JSON.stringify(state));
       $("#msg").textContent = "сохранено";
     }, 250);
   }
+  const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 
-  // тема: авто → светлая → тёмная
+  // тема
   const btn = $("#theme");
   function applyTheme(t) {
     document.documentElement.dataset.theme = t;
@@ -244,70 +260,87 @@
 
   // титул
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  const FIELDS = ["min", "city", "inst", "vuz", "labnum", "topic", "group", "name", "teacher", "place"];
   function renderTitle() {
     const m = state.meta;
+    set("t-min", m.min);
+    set("t-city", m.city);
+    set("t-inst", m.inst);
     set("t-vuz", m.vuz);
-    set("t-dep", m.dep);
-    set("t-lab", `по лабораторной работе № ${m.labnum}\nпо дисциплине «${m.course}»`);
+    set("t-lab", `Лабораторная работа № ${m.labnum}`);
+    set("t-topic", "Тема: " + (m.topic || "—"));
+    set("t-group", `Учебная группа ${m.group}`);
     set("t-name", m.name);
-    set("t-group", m.group);
-    set("t-var", m.variant);
     set("t-teacher", m.teacher);
-    set("t-year", m.year);
-    $("#t-lab").style.whiteSpace = "pre-line";
+    set("t-place", m.place);
     $("#pname").value = state.name;
-    for (const k of ["vuz", "dep", "labnum", "course", "name", "group", "variant", "teacher", "year"]) {
+    for (const k of FIELDS) {
       const f = document.getElementById("f-" + k);
       if (f && document.activeElement !== f) f.value = m[k] ?? "";
     }
+    if (document.activeElement !== $("#goal")) $("#goal").textContent = state.goal;
   }
-  for (const k of ["vuz", "dep", "labnum", "course", "name", "group", "variant", "teacher", "year"]) {
+  for (const k of FIELDS) {
     document.getElementById("f-" + k).addEventListener("input", (e) => {
       state.meta[k] = e.target.value;
       renderTitle(); save();
     });
   }
   $("#pname").addEventListener("input", (e) => { state.name = e.target.value; save(); });
+  $("#goal").addEventListener("input", (e) => { state.goal = e.target.innerText; save(); });
 
-  // задачи
+  // задания
+  function taskHTML(t, i) {
+    return `
+      <section class="sec task" data-i="${i}">
+        <h2>Задание №${i + 1}</h2>
+        <h3>Описание задания</h3>
+        <p class="cond" contenteditable="true" data-i="${i}" data-f="condition" data-ph="Вставь описание задания…">${esc(t.condition || "")}</p>
+        <h3>Код программы</h3>
+        <div class="code" contenteditable="true" data-i="${i}" data-f="code" data-ph="#include <stdio.h>&#10;&#10;int main(void) {&#10;    return 0;&#10;}">${esc(t.code || "")}</div>
+        <h3>Вывод программы</h3>
+        <div class="out" contenteditable="true" data-i="${i}" data-f="output" data-ph="Вставь вывод консоли…">${esc(t.output || "")}</div>
+        <h3>Скриншоты результатов выполнения задания</h3>
+        <div class="shots" data-i="${i}">${(t.shots || []).map((src) => `<div class="shot"><img src="${src}" alt=""></div>`).join("") || `<div class="slot shot-add">скриншоты — перетащи файлы сюда или нажми</div>`}</div>
+        <h3>Блок схема программы</h3>
+        <div class="slot">схема из gostpadi появится здесь</div>
+      </section>`;
+  }
   function renderTasks() {
     const box = $("#tasks");
-    box.innerHTML = "";
-    state.tasks.forEach((t, i) => {
-      const el = document.createElement("section");
-      el.className = "task";
-      el.innerHTML = `
-        <h2>Задача ${i + 1}</h2>
-        <h3>Условие</h3>
-        <div class="cond" contenteditable="true" data-i="${i}" data-f="condition">${esc(t.condition || "Вставь условие задания…")}</div>
-        <h3>Блок-схема</h3>
-        <div class="scheme-slot">схема из gostpadi появится здесь</div>
-        <h3>Код программы</h3>
-        <div class="code" contenteditable="true" data-i="${i}" data-f="code">${esc(t.code || "#include <stdio.h>\nint main(void) {\n    return 0;\n}")}</div>
-        <h3>Результат</h3>
-        <div class="shot-slot">скриншот консоли — перетащи сюда</div>`;
-      box.appendChild(el);
-    });
+    box.innerHTML = state.tasks.map(taskHTML).join("");
     box.querySelectorAll("[contenteditable]").forEach((el) => {
       el.addEventListener("input", () => {
-        const i = +el.dataset.i, f = el.dataset.f;
-        state.tasks[i][f] = el.innerText;
+        state.tasks[+el.dataset.i][el.dataset.f] = el.innerText;
         save();
       });
     });
+    box.querySelectorAll(".shots").forEach((boxEl) => {
+      const i = +boxEl.dataset.i;
+      boxEl.addEventListener("dragover", (e) => { e.preventDefault(); boxEl.classList.add("over"); });
+      boxEl.addEventListener("dragleave", () => boxEl.classList.remove("over"));
+      boxEl.addEventListener("drop", (e) => {
+        e.preventDefault(); boxEl.classList.remove("over");
+        addShots(i, [...(e.dataTransfer?.files || [])]);
+      });
+      boxEl.addEventListener("click", (e) => {
+        if (e.target.closest(".shot img")) return;
+        const inp = document.createElement("input");
+        inp.type = "file"; inp.accept = "image/*"; inp.multiple = true;
+        inp.onchange = () => addShots(i, [...inp.files]);
+        inp.click();
+      });
+    });
     renderTree();
-    $("#pages").textContent = `${1 + state.tasks.length} ${state.tasks.length ? "листа" : "лист"}`;
+    $("#pages").textContent = `${1 + state.tasks.length} лист${state.tasks.length === 1 ? "" : "а"}`;
   }
-  const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
-
   function renderTree() {
     const tree = $("#tree");
-    tree.querySelectorAll("li.task-item").forEach((n) => n.remove());
+    tree.querySelectorAll(".task-item").forEach((n) => n.remove());
     state.tasks.forEach((t, i) => {
       const li = document.createElement("li");
       li.className = "task-item";
-      li.dataset.view = "task" + i;
-      li.innerHTML = `<span class="num">${String(i + 1).padStart(2, "0")}</span> Задача ${i + 1}`;
+      li.innerHTML = `<span class="num">${String(i + 1).padStart(2, "0")}</span> Задание №${i + 1}`;
       li.onclick = () => {
         tree.querySelectorAll("li").forEach((x) => x.classList.remove("on"));
         li.classList.add("on");
@@ -316,12 +349,26 @@
       tree.appendChild(li);
     });
   }
+  function addShots(i, files) {
+    const imgs = files.filter((f) => f.type.startsWith("image/"));
+    let left = imgs.length;
+    if (!left) return;
+    imgs.forEach((f) => {
+      const r = new FileReader();
+      r.onload = () => {
+        state.tasks[i].shots = state.tasks[i].shots || [];
+        state.tasks[i].shots.push(r.result);
+        if (--left === 0) { renderTasks(); save(); }
+      };
+      r.readAsDataURL(f);
+    });
+  }
   $("#addtask").onclick = () => {
-    state.tasks.push({ condition: "", code: "", scheme: "", shot: "" });
+    state.tasks.push({ condition: "", code: "", output: "", shots: [] });
     renderTasks(); save();
   };
-
   $("#print").onclick = () => window.print();
+
   renderTitle();
   renderTasks();
 </script>

@@ -104,10 +104,10 @@
   .sheet .meta b{font-weight:500}
   .sheet .scheme{margin-top:auto;padding-top:12px;border-top:1px solid var(--paper-line)}
   .sheet .scheme svg{display:block;width:100%;height:auto}
-  .sheet .scheme path{stroke:var(--paper-ink);stroke-width:1.1;fill:none;stroke-dasharray:120;stroke-dashoffset:120;animation:draw 1.3s .3s ease forwards}
-  @keyframes draw{to{stroke-dashoffset:0}}
-  .sheet .scheme rect,.sheet .scheme ellipse{fill:none;stroke:var(--paper-ink);stroke-width:1.1;animation:fade .4s .85s ease both}
-  .sheet .scheme text{fill:var(--paper-ink);font:5.6px var(--mono)}
+  .sheet .scheme svg{width:100%;height:auto;display:block}
+  .sheet .scheme svg path,.sheet .scheme svg rect,.sheet .scheme svg ellipse{fill:none;stroke:var(--paper-ink);stroke-width:1.1}
+  .sheet .scheme svg text{fill:var(--paper-ink);font:5.8px var(--mono)}
+  .sheet .scheme{animation:fade .5s .2s ease both}
   @keyframes fade{from{opacity:0}to{opacity:1}}
   section{padding:64px 0;border-top:1px solid var(--line)}
   h2{font-size:16px;font-weight:700;margin:0 0 8px}
@@ -141,7 +141,7 @@
   .reveal{opacity:0;transform:translateY(8px)}
   .reveal.in{opacity:1;transform:none;transition:opacity .45s ease,transform .45s ease}
   @media (prefers-reduced-motion: reduce){
-    .reveal,.sheet,.sheet .scheme path,.sheet .scheme rect,.sheet .scheme ellipse{animation:none;opacity:1;transform:none;stroke-dashoffset:0}
+    .reveal,.sheet,.sheet .scheme{animation:none;opacity:1;transform:none;stroke-dashoffset:0}
     html{scroll-behavior:auto}
   }
   @media (max-width:900px){
@@ -206,21 +206,34 @@
             <b>Дата:</b> 21.10.2026
           </div>
           <div class="scheme">
-            <svg viewBox="0 0 220 108" role="img" aria-label="Блок-схема">
-              <ellipse cx="110" cy="10" rx="22" ry="7"></ellipse>
-              <text x="110" y="12" text-anchor="middle">начало</text>
-              <path d="M110 17 L110 27"></path>
-              <rect x="56" y="27" width="108" height="14"></rect>
-              <text x="110" y="36" text-anchor="middle">int n; float s = 0;</text>
-              <path d="M110 41 L110 49"></path>
-              <path d="M78 49 L142 63 L110 77 L46 63 Z"></path>
-              <text x="110" y="64" text-anchor="middle">i &lt; n</text>
-              <path d="M142 63 L196 63 L196 86 L110 86"></path>
-              <path d="M110 77 L110 88"></path>
-              <ellipse cx="110" cy="95" rx="22" ry="7"></ellipse>
-              <text x="110" y="97" text-anchor="middle">конец</text>
-              <text x="163" y="59" font-size="5">нет</text>
-              <text x="116" y="82" font-size="5">да</text>
+            <svg viewBox="0 0 260 132" role="img" aria-label="Блок-схема">
+              <ellipse cx="130" cy="11" rx="23" ry="7"></ellipse>
+              <text x="130" y="13" text-anchor="middle">начало</text>
+              <path d="M130 18 L130 27"></path>
+              <path d="M78 27 H182 L174 41 H70 Z"></path>
+              <text x="126" y="38.5" text-anchor="middle">n, a[100]</text>
+              <path d="M130 41 L130 47"></path>
+              <path d="M130 47 L192 60 L130 73 L68 60 Z"></path>
+              <text x="130" y="61.5" text-anchor="middle">i &lt; n</text>
+              <path d="M192 60 L210 60"></path>
+              <text x="201" y="57" text-anchor="middle">да</text>
+              <rect x="210" y="53" width="44" height="14"></rect>
+              <text x="232" y="62" text-anchor="middle">s += a[i]</text>
+              <path d="M232 67 L232 102 L130 102"></path>
+              <text x="136" y="79" text-anchor="start">нет</text>
+              <path d="M130 73 L130 82"></path>
+              <path d="M74 82 H186 L178 96 H66 Z"></path>
+              <text x="126" y="93.5" text-anchor="middle">вывод s</text>
+              <path d="M130 96 L130 104"></path>
+              <ellipse cx="130" cy="111" rx="23" ry="7"></ellipse>
+              <text x="130" y="113" text-anchor="middle">конец</text>
+              <g fill="none" stroke-linejoin="miter">
+                <path d="M127 23.5 L130 27.5 L133 23.5"></path>
+                <path d="M127 43.5 L130 47.5 L133 43.5"></path>
+                <path d="M127 78 L130 82 L133 78"></path>
+                <path d="M127 100 L130 104 L133 100"></path>
+                <path d="M189.5 57 L193.5 60 L189.5 63"></path>
+              </g>
             </svg>
           </div>
         </div>
