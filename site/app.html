@@ -47,6 +47,7 @@
   .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;text-decoration:none;color:var(--ink)}
   .logo .mark{width:9px;height:9px;border:1px solid var(--ink);border-radius:2px;position:relative}
   .logo .mark:before{content:"";position:absolute;left:2px;top:2px;width:3px;height:3px;background:var(--ink)}
+  .ver{font:600 10px var(--mono);color:var(--mute);border:1px solid var(--line);border-radius:var(--r);padding:1px 5px}
   .pname{background:transparent;border:1px solid transparent;color:var(--mute);font:13px var(--mono);padding:3px 6px;border-radius:var(--r);min-width:160px}
   .pname:hover{border-color:var(--line)}
   .pname:focus{outline:none;border-color:var(--line2);color:var(--ink)}
@@ -90,6 +91,13 @@
   /* секции отчёта */
   .sec{margin:0 0 6mm;page-break-inside:avoid}
   .sec h2{font-size:14pt;margin:0 0 3mm;font-weight:700}
+  .taskhead{display:flex;align-items:center;gap:4mm;margin-bottom:1mm}
+  .taskhead h2{margin:0}
+  .blocks{display:flex;gap:2mm;margin-left:auto;font-family:var(--mono)}
+  .blocks button{font:9pt var(--mono);padding:1mm 2mm;border:1px solid #ccc;background:#fff;color:#888;border-radius:2px;cursor:pointer}
+  .blocks button.on{border-color:#333;color:#111}
+  .blocks button.del{margin-left:2mm;border-color:#e0c0c0;color:#b33}
+  @media print{ .blocks{display:none!important} }
   .sec h3{font-size:13pt;margin:5mm 0 2mm;font-weight:700}
   .sec p{margin:0 0 2mm;white-space:pre-wrap}
   .code{font:10pt/1.45 var(--mono);background:#f7f7f7;border:1px solid var(--paper-line);padding:3mm;white-space:pre-wrap;word-break:break-word;border-radius:2px;min-height:20mm}
@@ -106,6 +114,7 @@
   .field input,.field textarea{width:100%;background:var(--soft);border:1px solid var(--line);border-radius:var(--r);color:var(--ink);font:13px/1.4 var(--mono);padding:6px 8px}
   .field input:focus,.field textarea:focus{outline:none;border-color:var(--line2);background:var(--bg)}
   .field textarea{resize:vertical;min-height:54px}
+  .empty{font-family:var(--mono);font-size:10pt;color:#777;border:1px dashed var(--paper-line);padding:8mm 4mm;text-align:center;margin:4mm 0}
   .note{font-size:11px;color:var(--faint);line-height:1.6;border-top:1px solid var(--line);padding-top:10px;margin-top:14px}
   .status{border-top:1px solid var(--line);height:30px;display:flex;align-items:center;gap:10px;padding:0 14px;font-size:11px;color:var(--mute)}
   .status .ok{color:var(--ok)}
@@ -134,6 +143,7 @@
 <body>
 <header>
   <a class="logo" href="./index.html"><span class="mark"></span>labpad</a>
+  <span class="ver">beta</span>
   <input class="pname" id="pname" value="Лабораторная работа № 1" aria-label="Название проекта">
   <span class="spacer"></span>
   <button class="btn btn-g iconbtn" id="theme" title="Тема: авто">◐</button>
@@ -291,28 +301,64 @@
 
   // задания
   function taskHTML(t, i) {
+    const on = (k) => (t.show ? t.show[k] !== false : true);
     return `
       <section class="sec task" data-i="${i}">
-        <h2>Задание №${i + 1}</h2>
+        <div class="taskhead">
+          <h2>Задание №${i + 1}</h2>
+          <div class="blocks" data-i="${i}">
+            <button data-b="code" class="${on("code") ? "on" : ""}" title="Показывать код">Код</button>
+            <button data-b="output" class="${on("output") ? "on" : ""}" title="Показывать вывод">Вывод</button>
+            <button data-b="shots" class="${on("shots") ? "on" : ""}" title="Показывать скриншоты">Скриншоты</button>
+            <button data-b="scheme" class="${on("scheme") ? "on" : ""}" title="Показывать блок-схему">Схема</button>
+            <button class="del" title="Удалить задание">×</button>
+          </div>
+        </div>
         <h3>Описание задания</h3>
         <p class="cond" contenteditable="true" data-i="${i}" data-f="condition" data-ph="Вставь описание задания…">${esc(t.condition || "")}</p>
-        <h3>Код программы</h3>
-        <div class="code" contenteditable="true" data-i="${i}" data-f="code" data-ph="#include <stdio.h>&#10;&#10;int main(void) {&#10;    return 0;&#10;}">${esc(t.code || "")}</div>
-        <h3>Вывод программы</h3>
-        <div class="out" contenteditable="true" data-i="${i}" data-f="output" data-ph="Вставь вывод консоли…">${esc(t.output || "")}</div>
-        <h3>Скриншоты результатов выполнения задания</h3>
+        <div class="blk" data-blk="code"><h3>Код программы</h3>
+        <div class="code" contenteditable="true" data-i="${i}" data-f="code" data-ph="#include <stdio.h>&#10;&#10;int main(void) {&#10;    return 0;&#10;}">${esc(t.code || "")}</div></div>
+        <div class="blk" data-blk="output"><h3>Вывод программы</h3>
+        <div class="out" contenteditable="true" data-i="${i}" data-f="output" data-ph="Вставь вывод консоли…">${esc(t.output || "")}</div></div>
+        <div class="blk" data-blk="shots"><h3>Скриншоты результатов выполнения задания</h3>
         <div class="shots" data-i="${i}">${(t.shots || []).map((src) => `<div class="shot"><img src="${src}" alt=""></div>`).join("") || `<div class="slot shot-add">скриншоты — перетащи файлы сюда или нажми</div>`}</div>
-        <h3>Блок схема программы</h3>
-        <div class="slot">схема из gostpadi появится здесь</div>
+        </div>
+        <div class="blk" data-blk="scheme"><h3>Блок схема программы</h3>
+        <div class="slot">схема из gostpadi появится здесь</div></div>
       </section>`;
   }
   function renderTasks() {
     const box = $("#tasks");
-    box.innerHTML = state.tasks.map(taskHTML).join("");
+    box.innerHTML = state.tasks.length
+      ? state.tasks.map(taskHTML).join("")
+      : `<div class="empty">Нажми «+ задание» слева — появится карточка с описанием, кодом, выводом, скриншотами и схемой.</div>`;
     box.querySelectorAll("[contenteditable]").forEach((el) => {
       el.addEventListener("input", () => {
         state.tasks[+el.dataset.i][el.dataset.f] = el.innerText;
         save();
+      });
+    });
+    box.querySelectorAll(".blocks").forEach((bar) => {
+      const i = +bar.dataset.i;
+      bar.querySelectorAll("[data-b]").forEach((b) => {
+        b.onclick = () => {
+          const k = b.dataset.b;
+          state.tasks[i].show = state.tasks[i].show || {};
+          state.tasks[i].show[k] = state.tasks[i].show[k] === false;
+          renderTasks(); save();
+        };
+      });
+      bar.querySelector(".del").onclick = () => {
+        if (!confirm(`Удалить задание №${i + 1}?`)) return;
+        state.tasks.splice(i, 1);
+        renderTasks(); save();
+      };
+    });
+    box.querySelectorAll(".task").forEach((sec) => {
+      const i = +sec.dataset.i, t = state.tasks[i];
+      sec.querySelectorAll("[data-blk]").forEach((el) => {
+        const k = el.dataset.blk;
+        if (t.show && t.show[k] === false) el.style.display = "none";
       });
     });
     box.querySelectorAll(".shots").forEach((boxEl) => {
