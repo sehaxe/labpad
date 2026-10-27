@@ -61,6 +61,92 @@
   .btn-p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
   .btn-p:active{background:var(--ink-deep)}
   .iconbtn{width:30px;justify-content:center;padding:0}
+  /* главное действие — заливкой: «скачать» должно быть видно сразу */
+  .btn-dl{height:34px;padding:0 16px;background:var(--ink);color:var(--bg);border:1px solid var(--ink);
+    font-weight:700;gap:7px;letter-spacing:.01em}
+  .btn-dl:hover{background:var(--ink-deep);border-color:var(--ink-deep);color:var(--bg)}
+  .btn-dl:active{transform:translateY(1px)}
+  .btn-dl[disabled]{opacity:.55;cursor:default;transform:none}
+  .dl-arrow{font-size:15px;line-height:1}
+  /* попап «Скачать PDF»: одно действие, понятные шаги после */
+  .dl-ov{position:fixed;inset:0;background:rgba(15,0,0,.5);display:flex;align-items:center;
+    justify-content:center;padding:20px;z-index:60}
+  .dl-ov[hidden]{display:none}
+  .dl-pan{width:min(520px,100%);max-height:calc(100vh - 40px);overflow:auto;background:var(--bg);
+    color:var(--ink);border:1px solid var(--line2);border-radius:6px;padding:18px 20px 16px;
+    animation:dlpop .18s ease-out}
+  @keyframes dlpop{from{opacity:0;transform:translateY(6px) scale(.99)}to{opacity:1;transform:none}}
+  .dl-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .dl-head h2{font-size:16px;margin:0;font-weight:700}
+  .dl-head .x{margin-left:auto;width:30px;height:30px;border:1px solid transparent;background:transparent;
+    color:var(--mute);border-radius:var(--r);cursor:pointer;font-size:16px;line-height:1}
+  .dl-head .x:hover{border-color:var(--line);color:var(--ink)}
+  .dl-lead{margin:-8px 0 14px;font-size:12px;color:var(--mute);line-height:1.45}
+  .dl-lead b{color:var(--ink);font-weight:700}
+  .dl-card{display:grid;grid-template-columns:48px 1fr;grid-template-rows:auto auto;column-gap:12px;
+    align-items:center;border:1px solid var(--ink);border-radius:var(--r);padding:12px;background:var(--soft)}
+  .dl-card .ic{grid-row:1/3;width:48px;height:48px;display:flex;align-items:center;justify-content:center;
+    border-radius:var(--r);font:700 11px var(--mono);background:var(--ink);color:var(--bg)}
+  .dl-card b{font-size:13px;font-weight:700}
+  .dl-card i{font-style:normal;font-size:11px;color:var(--mute);line-height:1.4}
+  .dl-extra{display:block;margin:12px 0 0;font-size:11.5px;color:var(--mute);line-height:1.5}
+  .dl-extra a{color:var(--accent);text-decoration:none}
+  .dl-extra a:hover{text-decoration:underline}
+  .dl-foot{display:flex;align-items:center;gap:12px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+  .dl-foot .sum{font-size:11.5px;color:var(--mute);line-height:1.4}
+  .dl-foot .btn-dl{margin-left:auto}
+  .dl-foot button[hidden]{display:none!important}
+  .dl-msg{min-height:16px;font-size:11.5px;color:var(--accent);margin-top:8px}
+  .dl-msg.err{color:#d33}
+  .dl-done[hidden]{display:none}
+  .dl-done{animation:dlfade .28s ease both}
+  @keyframes dlfade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .done-anim{display:flex;justify-content:center;margin:4px 0 10px}
+  .tick{width:52px;height:52px;overflow:visible}
+  .tick circle{fill:none;stroke:var(--ok);stroke-width:2.5;stroke-dasharray:145;stroke-dashoffset:145;
+    animation:dlcircle .5s ease-out forwards}
+  .tick path{fill:none;stroke:var(--ok);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;
+    stroke-dasharray:30;stroke-dashoffset:30;animation:dlcheck .32s .42s ease-out forwards}
+  @keyframes dlcircle{to{stroke-dashoffset:0}}
+  @keyframes dlcheck{to{stroke-dashoffset:0}}
+  .done-h{margin:0 0 4px;text-align:center;font-size:15px;font-weight:700}
+  .done-sub{margin:0 0 14px;text-align:center;font-size:12px;color:var(--mute)}
+  .done-steps{list-style:none;counter-reset:ds;margin:0 0 12px;padding:0;display:grid;gap:8px}
+  .done-steps li{counter-increment:ds;display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;
+    font-size:12px;line-height:1.5;color:var(--body);opacity:0;animation:dlfade .3s ease forwards}
+  .done-steps li:nth-child(1){animation-delay:.45s}
+  .done-steps li:nth-child(2){animation-delay:.58s}
+  .done-steps li:nth-child(3){animation-delay:.71s}
+  .done-steps li:before{content:counter(ds);width:22px;height:22px;border:1px solid var(--line2);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:10.5px;color:var(--mute)}
+  .done-steps b{color:var(--ink);font-weight:700}
+  .done-hint{margin:0;font-size:11.5px;color:var(--faint);line-height:1.5}
+  .done-hint kbd{font:10.5px var(--mono);border:1px solid var(--line);border-radius:3px;padding:0 4px;color:var(--mute)}
+  #dl-go.busy{opacity:.7;pointer-events:none}
+  /* снимок листа для PDF: только то, что попадёт на бумагу —
+     без кнопок, пустых слотов и служебных строк экрана */
+  .pdfcap .blocks,.pdfcap .run,.pdfcap .slot,.pdfcap .scheme-actions,
+  .pdfcap .codebar,.pdfcap .print-empty,.pdfcap .empty{display:none!important}
+  .pdfcap details.manual > *{display:block!important}
+  .pdfcap details.manual summary{display:none!important}
+  .pdfcap .out{display:block!important}
+  .pdfcap .sheet{box-shadow:none!important}
+  @media (prefers-reduced-motion:reduce){
+    .dl-pan,.dl-done,.done-steps li{animation:none;opacity:1}
+    .tick circle,.tick path{animation:none;stroke-dashoffset:0}
+  }
+  /* параметры схем: одна панель, три ручки — кегль, линии, рез */
+  .sopt{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:11px;color:var(--mute)}
+  .sopt label{flex:1}
+  .sopt input[type=range]{width:96px;accent-color:var(--ink)}
+  .sopt .val{width:34px;text-align:right;color:var(--ink);font-weight:700}
+  .sopt select{background:var(--soft);border:1px solid var(--line);color:var(--ink);font:11px var(--mono);padding:3px 4px;border-radius:3px}
+  .set-pop{position:fixed;top:58px;right:16px;z-index:55;width:272px;background:var(--bg);border:1px solid var(--line2);
+    border-radius:6px;padding:12px 14px 10px;animation:dlpop .16s ease-out}
+  .set-pop[hidden]{display:none}
+  .set-h{margin:0 0 10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+  .set-note{margin:6px 0 0;font-size:10.5px;color:var(--faint);line-height:1.45}
+  @media (max-width:420px){ .set-pop{left:10px;right:10px;width:auto} }
   .layout{display:grid;grid-template-columns:230px minmax(0,1fr) 300px;height:calc(100vh - 52px)}
   aside{border-right:1px solid var(--line);padding:14px 12px;overflow:auto}
   aside.right{border-right:0;border-left:1px solid var(--line)}
@@ -108,6 +194,11 @@
   .sec h3{font-size:13pt;margin:5mm 0 2mm;font-weight:700}
   .sec p{margin:0 0 2mm;white-space:pre-wrap}
   .code{font:10pt/1.45 var(--mono);background:#f7f7f7;border:1px solid var(--paper-line);padding:3mm;white-space:pre-wrap;word-break:break-word;border-radius:2px;min-height:20mm}
+  /* скрин кода вместо текста: блок тот же, картинка по ширине с рамкой */
+  .codebar{display:flex;align-items:center;gap:2mm;margin:0 0 1.5mm}
+  .codebar .mini{font-size:8.5pt}
+  .code-img{display:block;width:100%;height:auto;border:1px solid var(--paper-line);border-radius:2px;background:#fff}
+  .blk[data-blk="code"].over{outline:2px dashed var(--accent);outline-offset:3px}
   [contenteditable]:empty:before{content:attr(data-ph);color:#999;white-space:pre-wrap}
   .term{background:#161313;border:1px solid #2b2727;border-radius:4px;overflow:hidden;print-color-adjust:exact;-webkit-print-color-adjust:exact}
   .termbar{display:flex;align-items:center;gap:1.2mm;padding:1.4mm 3mm;background:#201d1d;border-bottom:1px solid #2b2727}
@@ -147,7 +238,7 @@
   .runout.err{color:#ffb4b4}
   .manual{margin-top:1mm}
   .manual summary{font:8.5pt var(--mono);color:#888;cursor:pointer;margin-bottom:1mm}
-  @media print{ .print-empty,.empty{display:none!important} .run{display:none!important} .manual{display:block!important} .manual summary{display:none!important} .out{display:block!important} }
+  @media print{ .print-empty,.empty{display:none!important} .run{display:none!important} .codebar{display:none!important} .manual{display:block!important} .manual summary{display:none!important} .out{display:block!important} }
   .scheme-actions{display:flex;align-items:center;gap:3mm;margin:1mm 0 2mm;font-family:var(--mono);font-size:9pt;color:#777}
   .mini{font:9pt var(--mono);padding:1mm 2.5mm;border:1px solid #ccc;background:#fff;border-radius:2px;cursor:pointer;color:#333}
   .mini:hover{border-color:#888}
@@ -184,7 +275,8 @@
     header{gap:8px;padding:0 10px}
     .pname{display:none}
     .pw{display:none}
-    #print{padding:6px 10px;font-size:11px}
+    #print{display:none}
+    #download{height:32px;padding:0 12px;font-size:12px}
     body{overflow:auto}
     .layout{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:auto}
     aside.left{border-right:0;border-bottom:1px solid var(--line);max-height:170px}
@@ -199,8 +291,9 @@
   <span class="ver">beta</span>
   <input class="pname" id="pname" value="Лабораторная работа № 1" aria-label="Название проекта">
   <span class="spacer"></span>
+  <button class="btn btn-g iconbtn" id="setbtn" aria-expanded="false" title="Параметры схем">⚙</button>
   <button class="btn btn-g iconbtn" id="theme" title="Тема: авто">◐</button>
-  <button class="btn btn-g" id="print">PDF / печать</button>
+  <button class="btn btn-dl" id="print"><span class="dl-arrow">↓</span>Скачать PDF</button>
 </header>
 
 <div class="layout">
@@ -264,6 +357,55 @@
 </div>
 <div class="status"><span id="msg" class="ok">готово</span><span class="spacer"></span><span id="pages">2 листа</span><a href="https://github.com/sehaxe/labpad/blob/main/LICENSE" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">MIT</a></div>
 
+<!-- Параметры схем: доступны с любой ширины экрана, а не только когда
+     видна правая панель. -->
+<!-- Скачивание отчёта: один формат (PDF) и понятный путь после. -->
+<div class="dl-ov" id="dl" hidden>
+  <div class="dl-pan" role="dialog" aria-modal="true" aria-labelledby="dl-title">
+    <div class="dl-head">
+      <h2 id="dl-title">Скачать отчёт</h2>
+      <button class="x" id="dl-x" aria-label="Закрыть">✕</button>
+    </div>
+    <p class="dl-lead" id="dl-lead"></p>
+    <div id="dl-form">
+      <div class="dl-card" data-fmt="pdf">
+        <span class="ic">PDF</span><b>Отчёт целиком</b>
+        <i>A4, поля 12 мм: титул, код, вывод, скриншоты и схемы</i>
+      </div>
+      <p class="dl-extra">Нужен диалог печати? <a href="#" id="dl-print">Открыть через печать браузера</a>.</p>
+    </div>
+    <div class="dl-done" id="dl-done" hidden>
+      <div class="done-anim" aria-hidden="true">
+        <svg viewBox="0 0 52 52" class="tick"><circle cx="26" cy="26" r="23"/><path d="M15 27l7 7 15-16"/></svg>
+      </div>
+      <p class="done-h" id="done-h">Готово</p>
+      <p class="done-sub" id="done-sub"></p>
+      <ol class="done-steps" id="done-steps"></ol>
+      <p class="done-hint" id="done-hint"></p>
+    </div>
+    <div class="dl-foot">
+      <span class="sum" id="dl-sum"></span>
+      <button class="btn btn-dl" id="dl-go"><span class="dl-arrow">↓</span>Скачать PDF</button>
+      <button class="btn btn-g" id="dl-again" hidden>Скачать ещё</button>
+      <button class="btn btn-dl" id="dl-finish" hidden>Готово</button>
+    </div>
+    <div class="dl-msg" id="dl-msg"></div>
+  </div>
+</div>
+
+<div class="set-pop" id="setpop" hidden>
+  <p class="set-h">Схемы</p>
+  <div class="sopt"><label for="s-font">Кегль</label><input type="range" id="s-font" min="8" max="24" step="1"><span class="val" id="s-font-v">12</span></div>
+  <div class="sopt"><label for="s-lw">Линии</label><input type="range" id="s-lw" min="0.5" max="3" step="0.1"><span class="val" id="s-lw-v">1.5</span></div>
+  <div class="sopt"><label for="s-split">Резать на листы</label><input type="checkbox" id="s-split" checked></div>
+  <div class="sopt"><label for="s-scale">Масштаб</label>
+    <select id="s-scale">
+      <option value="auto">авто</option><option value="1">100%</option><option value="0.75">75%</option><option value="0.5">50%</option>
+    </select>
+  </div>
+  <p class="set-note">Кегль и размеры блоков общие на всю лабу.</p>
+</div>
+
 <script>
   const $ = (s) => document.querySelector(s);
   const KEY = "labpad.project.v2";
@@ -287,6 +429,7 @@
       place: "Минск 2026",
     },
     goal: "Цель работы — научиться разрабатывать алгоритмы и писать код на языке Си по составленному алгоритму.",
+    opt: { font: 12, lw: 1.5, split: true, scale: "auto" },
     tasks: [],
   };
 
@@ -333,13 +476,20 @@ int main(void) {
     };
   }
   let state = load();
+  function normalize(p) {
+    return {
+      ...structuredClone(seed),
+      ...p,
+      meta: { ...seed.meta, ...(p.meta || {}) },
+      opt: { ...seed.opt, ...(p.opt || {}) },
+    };
+  }
   function load() {
-    if (new URLSearchParams(location.search).has("demo")) return structuredClone(demoProject());
+    if (new URLSearchParams(location.search).has("demo")) return normalize(demoProject());
     try {
       const raw = localStorage.getItem(KEY);
       if (!raw) return structuredClone(seed);
-      const p = JSON.parse(raw);
-      return { ...structuredClone(seed), ...p, meta: { ...seed.meta, ...(p.meta || {}) } };
+      return normalize(JSON.parse(raw));
     } catch { return structuredClone(seed); }
   }
   let timer;
@@ -426,7 +576,12 @@ int main(void) {
         <div class="blk" data-blk="desc"><h3>Описание задания</h3>
         <p class="cond" contenteditable="true" data-i="${i}" data-f="condition" data-ph="Вставь описание задания…">${esc(t.condition || "")}</p></div>
         <div class="blk" data-blk="code"><h3>Код программы</h3>
-        <div class="code" contenteditable="true" data-i="${i}" data-f="code" data-ph="#include <stdio.h>&#10;&#10;int main(void) {&#10;    return 0;&#10;}">${esc(t.code || "")}</div></div>
+        <div class="codebar">
+          <button class="mini" data-code-img="${i}">${t.codeImg ? "заменить картинку" : "картинка вместо кода"}</button>
+          <button class="mini" data-code-del="${i}" ${t.codeImg ? "" : "hidden"} title="убрать картинку и вернуть текст кода" aria-label="убрать картинку">вернуть код</button>
+        </div>
+        <div class="code" contenteditable="true" data-i="${i}" data-f="code" ${t.codeImg ? "hidden" : ""} data-ph="#include <stdio.h>&#10;&#10;int main(void) {&#10;    return 0;&#10;}">${esc(t.code || "")}</div>
+        ${t.codeImg ? `<img class="code-img" src="${esc(t.codeImg)}" alt="Код программы">` : ""}</div>
         <div class="blk" data-blk="output"><h3>Вывод программы</h3>
         <div class="run" data-run="${i}">
           <div class="runbar">
@@ -469,6 +624,29 @@ int main(void) {
     });
     box.querySelectorAll("[data-draw]").forEach((b) => {
       b.onclick = () => drawScheme(+b.dataset.draw);
+    });
+    box.querySelectorAll("[data-code-img]").forEach((b) => {
+      b.onclick = () => pickCodeImg(+b.dataset.codeImg);
+    });
+    box.querySelectorAll("[data-code-del]").forEach((b) => {
+      b.onclick = () => {
+        delete state.tasks[+b.dataset.codeDel].codeImg;
+        renderTasks(); save();
+      };
+    });
+    box.querySelectorAll('.blk[data-blk="code"]').forEach((blk) => {
+      const i = +blk.closest(".task").dataset.i;
+      blk.addEventListener("dragover", (e) => {
+        if (!e.dataTransfer?.types.includes("Files")) return;
+        e.preventDefault();
+        blk.classList.add("over");
+      });
+      blk.addEventListener("dragleave", () => blk.classList.remove("over"));
+      blk.addEventListener("drop", (e) => {
+        e.preventDefault();
+        blk.classList.remove("over");
+        setCodeImg(i, [...(e.dataTransfer?.files || [])].find((f) => f.type.startsWith("image/")));
+      });
     });
     box.querySelectorAll("[data-runbtn]").forEach((b) => {
       b.onclick = () => runCode(+b.dataset.runbtn, false);
@@ -569,6 +747,21 @@ int main(void) {
       r.readAsDataURL(f);
     });
   }
+  /* Код можно показать картинкой (скрин редактора): текст остаётся в
+     state.tasks[i].code и продолжает рисовать схему, картинка — только вид. */
+  function setCodeImg(i, file) {
+    if (!file || !file.type.startsWith("image/")) return;
+    const r = new FileReader();
+    r.onload = () => { state.tasks[i].codeImg = r.result; renderTasks(); save(); };
+    r.readAsDataURL(file);
+  }
+  function pickCodeImg(i) {
+    const inp = document.createElement("input");
+    inp.type = "file";
+    inp.accept = "image/*";
+    inp.onchange = () => setCodeImg(i, inp.files[0]);
+    inp.click();
+  }
   $("#addtask").onclick = () => {
     state.tasks.push({ condition: "", code: "", output: "", shots: [] });
     renderTasks(); save();
@@ -611,50 +804,52 @@ int main(void) {
     if (!out || !n) return { json: null, n: 0 };
     return { json: new TextDecoder().decode(new Uint8Array(wasm.memory.buffer, out, n)), n };
   }
-  /* Все схемы лабы рисуются ОДНОЙ пачкой: движок держит единый масштаб
+  /* Все схемы лабы рисуются одной пачкой: движок держит единый масштаб
      и единые размеры блоков на всю пачку (инвариант
-     batch_schemas_share_scale_font_and_rect_sizes), поэтому блоки в
-     разных схемах отчёта совпадают до миллиметра. */
+     batch_schemas_share_scale_font_and_rect_sizes). Кегль, толщина
+     линий и рез на листы — общие параметры лабы. */
+  async function callEngine(items, opt) {
+    const [ip, il] = wasmInput(packInputs(items.map(({ i, text }) => ({ name: `t${i}.c`, text }))));
+    const lp = wasm.gostpadi_alloc(4);
+    const out = wasm.gostpadi_render_batch_ex
+      ? wasm.gostpadi_render_batch_ex(ip, il, 1, opt.lw, opt.font, opt.split ? 0 : 1, lp)
+      : wasm.gostpadi_render_batch(ip, il, 1, opt.lw, opt.font, lp);
+    const r = readOut(out, lp);
+    wasm.gostpadi_free(ip, il);
+    wasm.gostpadi_free(lp, 4);
+    if (out) wasm.gostpadi_free(out, r.n);
+    return JSON.parse(r.json || '{"ok":false}');
+  }
+  function schemeNote(i, text) {
+    const btn = document.querySelector(`.scheme-actions [data-draw="${i}"]`);
+    const note = btn?.parentElement.querySelector(".scheme-note");
+    if (note) note.textContent = text;
+  }
   async function drawAllSchemes() {
     const idx = state.tasks.map((t, i) => [i, t]).filter(([, t]) => (t.code || "").trim());
     if (!idx.length) return;
-    idx.forEach(([i]) => {
-      const note = document.querySelector(`.scheme-actions [data-draw="${i}"]`)?.parentElement.querySelector(".scheme-note");
-      if (note) note.textContent = "рисую…";
-    });
-    const tasks = idx.map(([, t]) => t);
+    idx.forEach(([i]) => schemeNote(i, "рисую…"));
     try {
       await loadEngine();
-      const inputs = idx.map(([i, t]) => ({ i, text: t.code }));
-      const [ip, il] = wasmInput(packInputs(inputs.map(({ i, text }) => ({ name: `t${i}.c`, text }))));
-      const lp = wasm.gostpadi_alloc(4);
-      const out = wasm.gostpadi_render_batch(ip, il, tasks.length, 1, 12, lp);
-      const r = readOut(out, lp);
-      wasm.gostpadi_free(ip, il); wasm.gostpadi_free(lp, 4);
-      if (out) wasm.gostpadi_free(out, r.n);
-      const j = JSON.parse(r.json || '{"ok":false}');
-      // движок отдаёт по файлу на схему: main — имя входа, функции —
-      // «вход#имя». Собираем все схемы задачи (функции + main) в один блок.
+      const j = await callEngine(idx.map(([i, t]) => ({ i, text: t.code })), state.opt);
       const files = j.files || [];
       idx.forEach(([i, t]) => {
         const box = document.querySelector(`.scheme-box[data-scheme="${i}"]`);
-        const note = document.querySelector(`.scheme-actions [data-draw="${i}"]`)?.parentElement.querySelector(".scheme-note");
         if (!box || state.tasks[i] !== t) return;
         const prefix = `t${i}.c`;
         const mine = files
           .filter((f) => f.name === prefix || String(f.name).startsWith(prefix + "#"))
           .filter((f) => f.sheets?.length);
         if (!mine.length) {
-          box.innerHTML = `<div class="slot">${esc(j.errors?.[0]?.msg || j.empty?.[0]?.msg || "движок не смог нарисовать")}</div>`;
-          if (note) note.textContent = "ошибка";
+          const e = (j.errors || []).find((x) => x.name === prefix) || (j.empty || []).find((x) => x.name === prefix);
+          box.innerHTML = `<div class="slot">${esc(e?.msg || "движок не смог нарисовать")}</div>`;
+          schemeNote(i, "ошибка");
           return;
         }
         const figs = [];
         for (const f of mine) {
           const scheme = f.name === prefix ? "" : String(f.name).slice(prefix.length + 1);
-          f.sheets.forEach((sheet, si) => {
-            figs.push({ sheet, scheme, si, total: f.sheets.length });
-          });
+          f.sheets.forEach((sheet, si) => figs.push({ sheet, scheme, si, total: f.sheets.length }));
         }
         box.innerHTML = figs
           .map(
@@ -664,7 +859,7 @@ int main(void) {
           .join("");
         box.dataset.sheets = String(figs.length);
         const word = figs.length === 1 ? "лист" : figs.length < 5 ? "листа" : "листов";
-        if (note) note.textContent = `${figs.length} ${word} · ГОСТ 19.701-90`;
+        schemeNote(i, `${figs.length} ${word} · ГОСТ 19.701-90`);
       });
       renumberFigures();
       fitSchemes();
@@ -837,11 +1032,12 @@ int main(void) {
     const PAGE_W = 510.24, PAGE_H = 722.8;
     // масштаб общий: по самой широкой и самой высокой схеме лабы;
     // сверху ограничен 2× — крошечная схема не должна вырасти в плакат
+    const mult = state.opt?.scale === "auto" ? 1 : parseFloat(state.opt?.scale) || 1;
     const k = Math.min(
       2,
       PAGE_W / Math.max(...items.map((x) => x.w)),
       PAGE_H / Math.max(...items.map((x) => x.h))
-    );
+    ) * mult;
     for (const { s, w } of items) {
       s.style.width = (w * k).toFixed(3) + "pt";
       s.style.height = "auto";
@@ -858,7 +1054,7 @@ int main(void) {
       let empty = false;
       if (kind === "code" || kind === "output") {
         const el = blk.querySelector(".code, .out");
-        empty = !el || !el.textContent.trim();
+        empty = (!el || !el.textContent.trim()) && !blk.querySelector(".code-img");
       } else if (kind === "shots") {
         empty = !blk.querySelector(".shot img");
       } else if (kind === "scheme") {
@@ -875,10 +1071,322 @@ int main(void) {
     if (lastVisible) lastVisible.classList.add("sheet-last");
   }
   window.addEventListener("beforeprint", preparePrint);
-  $("#print").onclick = () => { preparePrint(); window.print(); };
+  /* ---------------- скачать PDF ---------------- */
+  const plural = (n, one, few, many) => {
+    const m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return one;
+    if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+    return many;
+  };
+  const safeName = (s) => String(s).replace(/[^0-9A-Za-zА-Яа-яЁё_-]+/g, "-").replace(/^-+|-+$/g, "");
+  function saveBlob(blob, name) {
+    const a = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    a.href = url;
+    a.download = name;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  }
+  const PDF_LIBS = {
+    h2c: "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js",
+    jspdf: "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js",
+  };
+  function loadScript(src) {
+    return new Promise((res, rej) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.onload = res;
+      s.onerror = () => rej(new Error("не загрузился " + src));
+      document.head.append(s);
+    });
+  }
+  async function ensurePdfLibs() {
+    if (!window.html2canvas) await loadScript(PDF_LIBS.h2c);
+    if (!window.jspdf) await loadScript(PDF_LIBS.jspdf);
+  }
+  function pdfSheets() {
+    preparePrint();
+    return [...document.querySelectorAll(".sheet")].filter((sh) => !sh.classList.contains("print-empty"));
+  }
+  /* html2canvas путает встроенный SVG с viewBox: рисует его со сдвигом и
+     обрезает. Поэтому схему сначала растеризуем сами (300 dpi), а в копию
+     листа кладём обычную картинку — её html2canvas понимает без сюрпризов. */
+  async function svgPng(svg) {
+    const w = parseFloat(svg.getAttribute("width")) || 0;
+    const h = parseFloat(svg.getAttribute("height")) || 0;
+    if (!w || !h) return null;
+    const clone = svg.cloneNode(true);
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    clone.removeAttribute("style");
+    const k = Math.min(300 / 72, 6000 / Math.max(w, h));
+    const url = URL.createObjectURL(new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(clone)], { type: "image/svg+xml" }));
+    try {
+      const img = new Image();
+      await new Promise((res, rej) => {
+        img.onload = res;
+        img.onerror = () => rej(new Error("не прочитать схему"));
+        img.src = url;
+      });
+      const c = document.createElement("canvas");
+      c.width = Math.max(1, Math.round(w * k));
+      c.height = Math.max(1, Math.round(h * k));
+      const g = c.getContext("2d");
+      g.fillStyle = "#fff";
+      g.fillRect(0, 0, c.width, c.height);
+      g.drawImage(img, 0, 0, c.width, c.height);
+      return c.toDataURL("image/png");
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+  async function pdfClone(sheet) {
+    const clone = sheet.cloneNode(true);
+    clone.classList.add("pdfcap");
+    clone.style.width = "210mm";
+    clone.style.margin = "0";
+    const from = [...sheet.querySelectorAll(".fig svg")];
+    const to = [...clone.querySelectorAll(".fig svg")];
+    for (let i = 0; i < from.length && i < to.length; i++) {
+      const png = await svgPng(from[i]).catch(() => null);
+      if (!png) { to[i].remove(); continue; }
+      const im = document.createElement("img");
+      im.src = png;
+      im.alt = "";
+      im.style.cssText = `display:block;margin:0 auto;width:${from[i].style.width || from[i].getAttribute("width")};height:auto;max-width:100%`;
+      to[i].replaceWith(im);
+    }
+    return clone;
+  }
+  /* Режем снимок листа на страницы A4 (210×297). Высота полосы — ширина
+     снимка × 297/210. Границу сдвигаем вверх до ближайшей белой строки
+     (не больше ~6 мм), чтобы не разрезать строку текста; вниз нельзя —
+     полоса выше A4 не влезет. Пустые хвосты отбрасываем. */
+  function pageSlices(canvas) {
+    const ctx = canvas.getContext("2d");
+    const w = canvas.width, h = canvas.height;
+    const pageH = Math.round((w * 297) / 210);
+    const slack = Math.round(pageH * 0.02);
+    const blank = (y) => {
+      const d = ctx.getImageData(0, y, w, 1).data;
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i] < 240 || d[i + 1] < 240 || d[i + 2] < 240) return false;
+      }
+      return true;
+    };
+    const slices = [];
+    for (let y = 0; y < h; ) {
+      let end = Math.min(h, y + pageH);
+      if (end < h) {
+        for (let d = 0; d < slack && end > y + 1; d++) {
+          if (blank(end - d)) { end -= d; break; }
+        }
+      }
+      slices.push([y, end]);
+      y = end;
+    }
+    while (slices.length > 1) {
+      const [y0, y1] = slices[slices.length - 1];
+      const d = ctx.getImageData(0, y0, w, y1 - y0).data;
+      let ink = false;
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i] < 245 || d[i + 1] < 245 || d[i + 2] < 245) { ink = true; break; }
+      }
+      if (ink) break;
+      slices.pop();
+    }
+    return slices;
+  }
+  /* Перед снимком разводим содержимое по страницам: задание, которое не
+     влезает в остаток страницы, начинается со следующей (кроме первого —
+     оно идёт сразу после цели); схема и скрин кода не разрезаются пополам.
+     Позиции читаем после каждого сдвига: следующий блок видит новый отступ. */
+  function alignPages(clone) {
+    const pageH = (clone.clientWidth * 297) / 210;
+    // скрин кода выше страницы не удержать целиком — ужимаем по пропорции
+    const maxImg = pageH * 0.84;
+    clone.querySelectorAll(".code-img").forEach((im) => {
+      const r = im.getBoundingClientRect();
+      if (r.width && r.height > maxImg) im.style.width = `${Math.round((r.width * maxImg) / r.height)}px`;
+    });
+    const from = clone.getBoundingClientRect().top;
+    const firstTask = clone.querySelector(".task");
+    clone.querySelectorAll(".task, .fig, .blk[data-blk=code]").forEach((el) => {
+      const isTask = el.classList.contains("task");
+      if (!isTask && !el.classList.contains("fig") && !el.querySelector(".code-img")) return;
+      const r = el.getBoundingClientRect();
+      if (!r.height) return;
+      const y0 = r.top - from;
+      const next = (Math.floor(y0 / pageH) + 1) * pageH;
+      if (y0 + r.height <= next + 2) return;
+      if (isTask ? el === firstTask : r.height > pageH) return;
+      const pad = document.createElement("div");
+      pad.style.height = `${Math.ceil(next - y0) + 2}px`;
+      el.before(pad);
+    });
+  }
+  /* Каждый лист отчёта — ровно страница A4. Снимаем с копии фиксированной
+     ширины 210 мм: на узком экране сам лист ужимается, и текст переносится
+     иначе, чем на печати. Высокий лист режется на страницы по высоте, а не
+     сплющивается в одну. */
+  async function buildPdf(onStep) {
+    await ensurePdfLibs();
+    const sheets = pdfSheets();
+    if (!sheets.length) throw new Error("в отчёте нет страниц");
+    const holder = document.createElement("div");
+    holder.setAttribute("aria-hidden", "true");
+    holder.style.cssText = "position:fixed;left:-20000px;top:0;width:210mm;background:#fff;pointer-events:none";
+    document.body.append(holder);
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
+    let first = true;
+    try {
+      for (let i = 0; i < sheets.length; i++) {
+        onStep?.(i + 1, sheets.length);
+        const clone = await pdfClone(sheets[i]);
+        clone.style.width = "210mm";
+        clone.style.margin = "0";
+        clone.style.boxShadow = "none";
+        holder.append(clone);
+        await Promise.all([...clone.querySelectorAll("img")].map((im) => im.decode?.().catch(() => {})));
+        alignPages(clone);
+        const canvas = await window.html2canvas(clone, {
+          scale: 2.4,
+          backgroundColor: "#ffffff",
+          useCORS: true,
+          logging: false,
+        });
+        clone.remove();
+        for (const [y0, y1] of pageSlices(canvas)) {
+          const part = document.createElement("canvas");
+          part.width = canvas.width;
+          part.height = y1 - y0;
+          part.getContext("2d").drawImage(canvas, 0, y0, canvas.width, part.height, 0, 0, canvas.width, part.height);
+          if (!first) pdf.addPage();
+          first = false;
+          pdf.addImage(part.toDataURL("image/jpeg", 0.94), "JPEG", 0, 0, 210, (part.height * 210) / canvas.width, undefined, "FAST");
+        }
+      }
+    } finally {
+      holder.remove();
+    }
+    return { blob: pdf.output("blob"), pages: pdf.getNumberOfPages() };
+  }
+  function pdfName() {
+    const n = safeName($("#pname").value || "labpad").toLowerCase() || "labpad";
+    return n + ".pdf";
+  }
+  function openPdf() {
+    $("#dl").hidden = false;
+    $("#dl-form").hidden = false;
+    $("#dl-done").hidden = true;
+    $("#dl-go").hidden = false;
+    $("#dl-again").hidden = true;
+    $("#dl-finish").hidden = true;
+    $("#dl-msg").textContent = "";
+    $("#dl-msg").classList.remove("err");
+    // точное число страниц зависит от рендера листа — покажем его после сборки
+    const n = state.tasks.length;
+    $("#dl-lead").innerHTML =
+      `${n} ${plural(n, "задание", "задания", "заданий")} · <b>PDF</b>, страницы A4`;
+    $("#dl-sum").textContent = `1 файл · ${pdfName()}`;
+    $("#dl-x").focus();
+  }
+  const closePdf = () => { $("#dl").hidden = true; };
+  function pdfSteps() {
+    return [
+      "Открой папку <b>Загрузки</b> — PDF уже там",
+      "Проверь: <b>A4</b>, поля 12 мм, схемы и код на месте",
+      "Отправь преподавателю или распечатай <b>1:1</b>, без «вписать в страницу»",
+    ];
+  }
+  async function runPdf() {
+    const btn = $("#dl-go");
+    btn.classList.add("busy");
+    $("#dl-msg").classList.remove("err");
+    $("#dl-msg").textContent = "собираю страницы…";
+    try {
+      const { blob, pages } = await buildPdf((i, n) => {
+        $("#dl-msg").textContent = `собираю страницы… ${i} из ${n}`;
+      });
+      saveBlob(blob, pdfName());
+      $("#dl-form").hidden = true;
+      $("#dl-done").hidden = false;
+      $("#dl-go").hidden = true;
+      $("#dl-again").hidden = false;
+      $("#dl-finish").hidden = false;
+      $("#done-h").textContent = "PDF готов";
+      $("#done-sub").textContent = `${pdfName()} · ${pages} ${plural(pages, "страница", "страницы", "страниц")}`;
+      $("#done-steps").innerHTML = pdfSteps().map((s) => `<li><span>${s}</span></li>`).join("");
+      $("#done-hint").innerHTML = "Открыть загрузки: <kbd>Ctrl</kbd>+<kbd>J</kbd> в браузере.";
+      $("#dl-msg").textContent = "";
+    } catch (e) {
+      $("#dl-msg").textContent = "не получилось: " + e.message;
+      $("#dl-msg").classList.add("err");
+    } finally {
+      btn.classList.remove("busy");
+    }
+  }
+  $("#print").onclick = openPdf;
+  $("#dl-x").onclick = closePdf;
+  $("#dl-finish").onclick = closePdf;
+  $("#dl").addEventListener("click", (e) => { if (e.target.id === "dl") closePdf(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#dl").hidden) closePdf(); });
+  $("#dl-go").onclick = runPdf;
+  $("#dl-again").onclick = () => {
+    $("#dl-form").hidden = false;
+    $("#dl-done").hidden = true;
+    $("#dl-go").hidden = false;
+    $("#dl-again").hidden = true;
+    $("#dl-finish").hidden = true;
+    $("#dl-msg").textContent = "";
+  };
+  $("#dl-print").onclick = (e) => {
+    e.preventDefault();
+    closePdf();
+    preparePrint();
+    setTimeout(() => window.print(), 60);
+  };
+
+  /* ---------------- параметры схем ---------------- */
+  function syncOptUI() {
+    const o = state.opt;
+    $("#s-font").value = o.font;
+    $("#s-font-v").textContent = o.font;
+    $("#s-lw").value = o.lw;
+    $("#s-lw-v").textContent = o.lw;
+    $("#s-split").checked = !!o.split;
+    $("#s-scale").value = o.scale;
+  }
+  let optTimer;
+  function optChanged(redraw) {
+    save();
+    if (redraw) {
+      clearTimeout(optTimer);
+      optTimer = setTimeout(() => drawAllSchemes(), 350);
+    } else fitSchemes();
+  }
+  $("#s-font").oninput = (e) => { state.opt.font = +e.target.value; $("#s-font-v").textContent = e.target.value; optChanged(true); };
+  $("#s-lw").oninput = (e) => { state.opt.lw = +e.target.value; $("#s-lw-v").textContent = e.target.value; optChanged(true); };
+  $("#s-split").onchange = (e) => { state.opt.split = e.target.checked; optChanged(true); };
+  $("#s-scale").onchange = (e) => { state.opt.scale = e.target.value; optChanged(false); };
+  const setbtn = $("#setbtn");
+  const setpop = $("#setpop");
+  const toggleSettings = (on) => {
+    setpop.hidden = on === undefined ? !setpop.hidden : !on;
+    setbtn.setAttribute("aria-expanded", String(!setpop.hidden));
+    setbtn.classList.toggle("btn-g", !setpop.hidden);
+  };
+  setbtn.onclick = () => toggleSettings();
+  document.addEventListener("click", (e) => {
+    if (!setpop.hidden && !setpop.contains(e.target) && !setbtn.contains(e.target)) toggleSettings(false);
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !setpop.hidden) toggleSettings(false); });
 
   renderTitle();
   renderTasks();
+  syncOptUI();
 
   /* проект из файла: app.html?project=lab2.json — отчёт открывается
      готовым, без локального localStorage (для показа/печати) */
@@ -887,7 +1395,7 @@ int main(void) {
     fetch(projectUrl)
       .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then((p) => {
-        state = { ...structuredClone(seed), ...p, meta: { ...seed.meta, ...(p.meta || {}) } };
+        state = normalize(p);
         renderTitle();
         renderTasks();
         $("#msg").textContent = "проект загружен";
