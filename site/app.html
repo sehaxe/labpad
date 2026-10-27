@@ -122,11 +122,62 @@
   .done-steps b{color:var(--ink);font-weight:700}
   .done-hint{margin:0;font-size:11.5px;color:var(--faint);line-height:1.5}
   .done-hint kbd{font:10.5px var(--mono);border:1px solid var(--line);border-radius:3px;padding:0 4px;color:var(--mute)}
+  /* гайд «Как собрать отчёт»: шаг — макет слева, одна фраза справа */
+  .guide{width:min(560px,100%)}
+  .guide-steps{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+  .guide-steps li{display:grid;grid-template-columns:92px 1fr;gap:12px;align-items:center;
+    border-top:1px solid var(--line);padding-top:10px}
+  .guide-steps li:first-child{border-top:0;padding-top:0}
+  .guide-steps p{margin:0;font-size:12.5px;line-height:1.4;color:var(--body)}
+  .guide-art{height:64px;border:1px solid var(--line);border-radius:4px;background:var(--soft);
+    position:relative;overflow:hidden}
+  .ga-sheet{background:var(--paper);padding:7px 9px}
+  .ga-sheet b{display:block;width:30px;height:2px;background:#cfc9c9;margin:0 auto 7px}
+  .ga-sheet i{display:block;height:2px;background:#ddd7d7;margin:0 0 5px;border-radius:1px}
+  .ga-sheet i:nth-of-type(2){width:72%}
+  .ga-sheet i.on{height:7px;background:rgba(0,122,255,.16);border:1px solid var(--accent);border-radius:2px}
+  .ga-card{padding:6px 7px}
+  .ga-card b{display:block;font:700 7px var(--mono);color:var(--ink);margin-bottom:5px}
+  .ga-card i{display:block;height:10px;border:1px solid #d5cfcf;border-radius:2px;background:#fff;margin-bottom:3px}
+  .ga-card i:nth-of-type(2){width:76%}
+  .ga-card i:nth-of-type(3){width:88%}
+  .ga-flow{padding:7px;display:grid;grid-template-columns:1fr 12px 1fr;grid-template-rows:1fr 1fr;gap:4px}
+  .ga-flow .ga-code{grid-row:1/3;background:#1f1c1c;border-radius:2px}
+  .ga-flow .ga-arrow{grid-row:1/3;color:var(--accent);font:700 10px var(--mono);text-align:center;align-self:center}
+  .ga-flow .ga-scheme{grid-row:1;border:1px solid #c9c3c3;background:#fff;border-radius:2px;position:relative}
+  .ga-flow .ga-scheme:before{content:"";position:absolute;left:50%;top:5px;width:7px;height:7px;border:1px solid #888;transform:translateX(-50%) rotate(45deg)}
+  .ga-flow .ga-scheme:after{content:"";position:absolute;left:50%;top:16px;width:1px;height:8px;background:#888}
+  .ga-flow .ga-term{grid-row:2;background:#111;border-radius:2px;position:relative}
+  .ga-flow .ga-term:before{content:"";position:absolute;left:4px;top:5px;width:18px;height:2px;background:#6f6a6a;box-shadow:0 5px 0 #6f6a6a,0 10px 0 #6f6a6a}
+  .ga-drop{padding:7px;display:flex;align-items:center;gap:6px}
+  .ga-win{flex:0 0 34px;height:40px;border:1px solid #c9c3c3;background:#fff;border-radius:2px;position:relative}
+  .ga-win:before{content:"";position:absolute;left:4px;top:4px;right:4px;height:3px;background:#d8d3d3}
+  .ga-win:after{content:"";position:absolute;left:4px;top:12px;width:18px;height:2px;background:#d8d3d3;box-shadow:0 5px 0 #d8d3d3,0 10px 0 #d8d3d3}
+  .ga-dash{flex:1;height:40px;border:1px dashed var(--accent);border-radius:3px;display:flex;align-items:center;
+    justify-content:center;text-align:center;padding:2px;font:7px/1.3 var(--mono);color:var(--accent);background:rgba(0,122,255,.05)}
+  .ga-pdf{padding:9px 8px;display:flex;align-items:center;gap:7px}
+  .ga-pdf .ga-btn{flex:1;height:22px;border-radius:3px;background:var(--ink);color:var(--bg);
+    font:700 8px var(--mono);display:flex;align-items:center;justify-content:center}
+  .ga-pdf .ga-page{width:16px;height:40px;border:1px solid #c9c3c3;background:#fff;border-radius:1px;position:relative}
+  .ga-pdf .ga-page:before{content:"";position:absolute;left:3px;top:5px;right:3px;height:2px;background:#ddd7d7;box-shadow:0 5px 0 #ddd7d7,0 10px 0 #ddd7d7}
+  .guide-again{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--mute);cursor:pointer}
+  .guide-again input{accent-color:var(--ink)}
+  .guide .dl-foot .btn-p{margin-left:auto}
+  @media (max-width:520px){
+    .taskhead{flex-direction:column;align-items:flex-start;gap:1mm}
+    .blocks{margin-left:0}
+  }
+  @media (max-width:420px){
+    .guide-steps li{grid-template-columns:64px 1fr;gap:10px}
+    .guide-art{height:56px}
+    .guide-steps p{font-size:12px}
+    .ga-pdf .ga-page{width:12px;height:34px}
+  }
   #dl-go.busy{opacity:.7;pointer-events:none}
   /* снимок листа для PDF: только то, что попадёт на бумагу —
      без кнопок, пустых слотов и служебных строк экрана */
   .pdfcap .blocks,.pdfcap .run,.pdfcap .slot,.pdfcap .scheme-actions,
-  .pdfcap .codebar,.pdfcap .print-empty,.pdfcap .empty{display:none!important}
+  .pdfcap .codebar,.pdfcap .hint-line,.pdfcap .print-empty,.pdfcap .empty{display:none!important}
   .pdfcap details.manual > *{display:block!important}
   .pdfcap details.manual summary{display:none!important}
   .pdfcap .out{display:block!important}
@@ -161,10 +212,10 @@
   .sheet{
     width:min(var(--sheet-w),100%);min-height:297mm;margin:0 auto 18px;background:var(--paper);color:var(--paper-ink);
     font-family:var(--serif);font-size:14pt;line-height:1.5;box-shadow:0 0 0 1px var(--paper-line);
-    padding:20mm 10mm 20mm 20mm;
+    padding:12mm 15mm;
   }
   html[data-theme="dark"] .sheet{box-shadow:0 0 0 1px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35)}
-  .pagebody{max-width:100%;min-height:calc(297mm - 40mm);display:flex;flex-direction:column}
+  .pagebody{max-width:100%;min-height:calc(297mm - 24mm);display:flex;flex-direction:column}
   /* титул */
   .tit{text-align:center;flex:1;display:flex;flex-direction:column}
   .tit .min{font-size:12pt;line-height:1.4;margin-bottom:10mm}
@@ -184,9 +235,9 @@
   /* секции отчёта */
   .sec{margin:0 0 6mm;page-break-inside:avoid}
   .sec h2{font-size:14pt;margin:0 0 3mm;font-weight:700}
-  .taskhead{display:flex;align-items:center;gap:4mm;margin-bottom:1mm}
+  .taskhead{display:flex;align-items:center;gap:4mm;margin-bottom:1mm;flex-wrap:wrap}
   .taskhead h2{margin:0}
-  .blocks{display:flex;gap:2mm;margin-left:auto;font-family:var(--mono)}
+  .blocks{display:flex;flex-wrap:wrap;gap:2mm;margin-left:auto;font-family:var(--mono)}
   .blocks button{font:9pt var(--mono);padding:1mm 2mm;border:1px solid #ccc;background:#fff;color:#888;border-radius:2px;cursor:pointer}
   .blocks button.on{border-color:#333;color:#111}
   .blocks button.del{margin-left:2mm;border-color:#e0c0c0;color:#b33}
@@ -197,6 +248,7 @@
   /* скрин кода вместо текста: блок тот же, картинка по ширине с рамкой */
   .codebar{display:flex;align-items:center;gap:2mm;margin:0 0 1.5mm}
   .codebar .mini{font-size:8.5pt}
+  .hint-line{margin:0 0 2mm;font-size:11.5px;line-height:1.5;color:#777;max-width:100%;text-wrap:pretty}
   .code-img{display:block;width:100%;height:auto;border:1px solid var(--paper-line);border-radius:2px;background:#fff}
   .blk[data-blk="code"].over{outline:2px dashed var(--accent);outline-offset:3px}
   [contenteditable]:empty:before{content:attr(data-ph);color:#999;white-space:pre-wrap}
@@ -238,7 +290,7 @@
   .runout.err{color:#ffb4b4}
   .manual{margin-top:1mm}
   .manual summary{font:8.5pt var(--mono);color:#888;cursor:pointer;margin-bottom:1mm}
-  @media print{ .print-empty,.empty{display:none!important} .run{display:none!important} .codebar{display:none!important} .manual{display:block!important} .manual summary{display:none!important} .out{display:block!important} }
+  @media print{ .print-empty,.empty{display:none!important} .run{display:none!important} .codebar{display:none!important} .hint-line{display:none!important} .manual{display:block!important} .manual summary{display:none!important} .out{display:block!important} }
   .scheme-actions{display:flex;align-items:center;gap:3mm;margin:1mm 0 2mm;font-family:var(--mono);font-size:9pt;color:#777}
   .mini{font:9pt var(--mono);padding:1mm 2.5mm;border:1px solid #ccc;background:#fff;border-radius:2px;cursor:pointer;color:#333}
   .mini:hover{border-color:#888}
@@ -251,10 +303,11 @@
   @media print{
     /* поля сверху/снизу: принтер не съест край листа */
     @page{size:A4;margin:12mm 0}
+    #help-ov,#dl{display:none!important}
     header,aside,.status{display:none!important}
     .layout{display:block;height:auto}
     .stage{padding:0;background:#fff;overflow:visible}
-    .sheet{width:210mm;min-height:272mm;box-shadow:none;margin:0;page-break-after:always;padding:0 10mm 0 20mm}
+    .sheet{width:210mm;min-height:272mm;box-shadow:none;margin:0;page-break-after:always;padding:0 15mm}
     .sheet:last-child,.sheet.sheet-last{page-break-after:auto;break-after:auto}
     .slot{border-color:#bbb}
     .sec{page-break-inside:auto}
@@ -281,7 +334,7 @@
     .layout{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:auto}
     aside.left{border-right:0;border-bottom:1px solid var(--line);max-height:170px}
     .stage{padding:14px 8px 40px}
-    .sheet{padding:14mm 8mm 14mm 12mm;font-size:12pt}
+    .sheet{padding:12mm 10mm;font-size:12pt}
   }
 </style>
 </head>
@@ -293,6 +346,7 @@
   <span class="spacer"></span>
   <button class="btn btn-g iconbtn" id="setbtn" aria-expanded="false" title="Параметры схем">⚙</button>
   <button class="btn btn-g iconbtn" id="theme" title="Тема: авто">◐</button>
+  <button class="btn btn-g iconbtn" id="help" aria-label="Как пользоваться" title="Как пользоваться">?</button>
   <button class="btn btn-dl" id="print"><span class="dl-arrow">↓</span>Скачать PDF</button>
 </header>
 
@@ -393,6 +447,49 @@
   </div>
 </div>
 
+<!-- Гайд: пять шагов, у каждого макет, а не абзац текста. -->
+<div class="dl-ov" id="help-ov" hidden>
+  <div class="dl-pan guide" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="dl-head">
+      <h2 id="help-title">Как собрать отчёт</h2>
+      <button class="x" id="help-x" aria-label="Закрыть">✕</button>
+    </div>
+    <ol class="guide-steps">
+      <li>
+        <div class="guide-art ga-sheet" aria-hidden="true"><b></b><i></i><i></i><i class="on"></i><i></i></div>
+        <p>Заполни титул — кликни на любую строку на листе и печатай.</p>
+      </li>
+      <li>
+        <div class="guide-art ga-card" aria-hidden="true"><b>Задание №1</b><i></i><i></i><i></i></div>
+        <p>Добавь задание: «+ задание», вставь условие и код.</p>
+      </li>
+      <li>
+        <div class="guide-art ga-flow" aria-hidden="true">
+          <span class="ga-code"></span><span class="ga-arrow">→</span>
+          <span class="ga-scheme"></span><span class="ga-term"></span>
+        </div>
+        <p>Код → схема рисуется сама; вывод считает компилятор.</p>
+      </li>
+      <li>
+        <div class="guide-art ga-drop" aria-hidden="true">
+          <span class="ga-win"></span><span class="ga-dash">скрин сюда</span>
+        </div>
+        <p>Скрин окна выполнения перетащи в блок скриншотов.</p>
+      </li>
+      <li>
+        <div class="guide-art ga-pdf" aria-hidden="true">
+          <span class="ga-btn">↓ PDF</span><span class="ga-page"></span><span class="ga-page"></span>
+        </div>
+        <p>Скачай PDF: одна кнопка, страницы A4.</p>
+      </li>
+    </ol>
+    <div class="dl-foot">
+      <label class="guide-again"><input type="checkbox" id="help-never"> больше не показывать</label>
+      <button class="btn btn-p" id="help-ok">Понятно</button>
+    </div>
+  </div>
+</div>
+
 <div class="set-pop" id="setpop" hidden>
   <p class="set-h">Схемы</p>
   <div class="sopt"><label for="s-font">Кегль</label><input type="range" id="s-font" min="8" max="24" step="1"><span class="val" id="s-font-v">12</span></div>
@@ -471,7 +568,7 @@ int main(void) {
         code: DEMO_CODE,
         stdin: "4\n3 8 -2 7\n",
         output: "Введите количество элементов: 4\na[0] = 3\na[1] = 8\na[2] = -2\na[3] = 7\nСумма: 16",
-        shots: [], show: {},
+        shots: [], show: { shots: false },
       }],
     };
   }
@@ -583,13 +680,14 @@ int main(void) {
         <div class="code" contenteditable="true" data-i="${i}" data-f="code" ${t.codeImg ? "hidden" : ""} data-ph="#include <stdio.h>&#10;&#10;int main(void) {&#10;    return 0;&#10;}">${esc(t.code || "")}</div>
         ${t.codeImg ? `<img class="code-img" src="${esc(t.codeImg)}" alt="Код программы">` : ""}</div>
         <div class="blk" data-blk="output"><h3>Вывод программы</h3>
+        <p class="hint-line">Программа компилируется и запускается сама: вывод подставится в отчёт. Нужны другие числа — впиши их в поле «вход». Нет связи — вставь вывод вручную. Скриншоты не обязательны — вывод уже в отчёте. Нужны — включи блок «Скриншоты».</p>
         <div class="run" data-run="${i}">
           <div class="runbar">
             <label>вход</label>
             <input class="stdin" data-i="${i}" placeholder="числа для scanf, каждое с новой строки" value="${esc(t.stdin || "")}">
             <button class="mini runbtn" data-runbtn="${i}">запустить</button>
             <label class="autorun"><input type="checkbox" data-auto="${i}" ${t.autoRun === false ? "" : "checked"}> авто</label>
-            <span class="runstate"></span>
+            <span class="runstate" title="runner на компьютере (быстро) или облако Judge0 (работает без установки)"></span>
             <span class="runhint" title="Без локального runner вывод считается в публичном облаке Judge0">?</span>
           </div>
           <pre class="runout" data-runout="${i}"></pre>
@@ -601,7 +699,8 @@ int main(void) {
           </div>
         </details></div>
         <div class="blk" data-blk="shots"><h3>Скриншоты результатов выполнения задания</h3>
-        <div class="shots" data-i="${i}">${(t.shots || []).map((src) => `<div class="shot"><img src="${src}" alt=""></div>`).join("") || `<div class="slot shot-add">скриншоты — перетащи файлы сюда или нажми</div>`}</div>
+        <p class="hint-line">Сделай скрин окна консоли после запуска (Windows: Win+Shift+S, macOS: Cmd+Shift+4) и перетащи сюда — попадёт в отчёт. Можно несколько.</p>
+        <div class="shots" data-i="${i}">${(t.shots || []).map((src) => `<div class="shot"><img src="${src}" alt=""></div>`).join("") || `<div class="slot shot-add">нажми или перетащи скрин окна выполнения</div>`}</div>
         </div>
         <div class="blk" data-blk="scheme"><h3>Блок схема программы</h3>
         <div class="scheme-box" data-scheme="${i}">
@@ -763,7 +862,7 @@ int main(void) {
     inp.click();
   }
   $("#addtask").onclick = () => {
-    state.tasks.push({ condition: "", code: "", output: "", shots: [] });
+    state.tasks.push({ condition: "", code: "", output: "", shots: [], show: { shots: false } });
     renderTasks(); save();
   };
   /* ---------- движок схем: gostpadi.wasm ---------- */
@@ -1204,26 +1303,71 @@ int main(void) {
      Позиции читаем после каждого сдвига: следующий блок видит новый отступ. */
   function alignPages(clone) {
     const pageH = (clone.clientWidth * 297) / 210;
+    const root = clone.getBoundingClientRect().top;
+    const top = (el) => el.getBoundingClientRect().top - root;
+    const high = (el) => el.getBoundingClientRect().height;
+    const edge = (y) => Math.round(y / pageH) * pageH;
+    const atPage = (y) => Math.abs(y - edge(y)) <= 2;
+    /* ставим элемент на ближайшую границу полосы; отступ-распорку потом
+       подправляем — маргины и дробные пиксели иначе съедают пару мм */
+    function toPageStart(el) {
+      const goal = atPage(top(el)) ? top(el) : (Math.floor(top(el) / pageH) + 1) * pageH;
+      const pad = document.createElement("div");
+      pad.style.height = `${goal - top(el)}px`;
+      if (goal - top(el) < 0.5) return;
+      el.before(pad);
+      for (let k = 0; k < 2; k++) {
+        const off = top(el) - goal;
+        if (Math.abs(off) < 0.5) break;
+        pad.style.height = `${parseFloat(pad.style.height) - off}px`;
+      }
+    }
+    const crosses = (y0, end) => end > (Math.floor(y0 / pageH) + 1) * pageH + 2;
     // скрин кода выше страницы не удержать целиком — ужимаем по пропорции
     const maxImg = pageH * 0.84;
     clone.querySelectorAll(".code-img").forEach((im) => {
       const r = im.getBoundingClientRect();
       if (r.width && r.height > maxImg) im.style.width = `${Math.round((r.width * maxImg) / r.height)}px`;
     });
-    const from = clone.getBoundingClientRect().top;
-    const firstTask = clone.querySelector(".task");
-    clone.querySelectorAll(".task, .fig, .blk[data-blk=code]").forEach((el) => {
-      const isTask = el.classList.contains("task");
-      if (!isTask && !el.classList.contains("fig") && !el.querySelector(".code-img")) return;
-      const r = el.getBoundingClientRect();
-      if (!r.height) return;
-      const y0 = r.top - from;
-      const next = (Math.floor(y0 / pageH) + 1) * pageH;
-      if (y0 + r.height <= next + 2) return;
-      if (isTask ? el === firstTask : r.height > pageH) return;
-      const pad = document.createElement("div");
-      pad.style.height = `${Math.ceil(next - y0) + 2}px`;
-      el.before(pad);
+    // 1–3 по каждому заданию: сначала ставим само задание, потом его
+    // внутренности — иначе перенос большой схемы сдвигает следующее задание
+    // с уже выровненной страницы
+    [...clone.querySelectorAll(".task")].forEach((task, i) => {
+      if (i && crosses(top(task), top(task) + high(task)) && !atPage(top(task))) toPageStart(task);
+      // заголовок блока не остаётся внизу без своего содержимого
+      task.querySelectorAll(".blk").forEach((blk) => {
+        if (blk.dataset.blk === "scheme" || !high(blk)) return;
+        if (!crosses(top(blk), top(blk) + high(blk))) return;
+        const lead = blk.dataset.blk === "desc" ? task.querySelector(".taskhead") : blk;
+        if (!atPage(top(lead))) toPageStart(lead);
+      });
+      // схема: большая — одна на странице и по центру (с подписью и
+      // заголовком), мелкая — целиком, если не влезает в остаток
+      task.querySelectorAll('.blk[data-blk="scheme"]').forEach((blk) => {
+        if (!high(blk)) return;
+        const h3 = blk.querySelector("h3");
+        [...blk.querySelectorAll(".fig")].filter((f) => high(f)).forEach((fig, j) => {
+          const lead = j === 0 ? h3 : null;
+          const anchor = lead || fig;
+          if (high(fig) > pageH * 0.55) {
+            if (lead) lead.style.marginTop = "0";
+            fig.style.margin = "0";
+            toPageStart(anchor);
+            const box = document.createElement("div");
+            // у схемы белое поле сверху чуть больше, чем у подписи снизу:
+            // 2.8 мм снизу = подъём красок на ~1.4 мм к центру страницы
+            box.style.cssText = `height:${pageH}px;display:flex;flex-direction:column;justify-content:center;padding-bottom:2.8mm;gap:2mm`;
+            anchor.before(box);
+            if (lead) box.append(lead);
+            box.append(fig);
+            // схема закрывает задание: нижний отступ иначе сдвинет
+            // следующее задание на 6 мм внутрь новой страницы
+            task.style.marginBottom = "0";
+          } else if (crosses(top(anchor), top(fig) + high(fig)) && !atPage(top(anchor))) {
+            toPageStart(anchor);
+          }
+        });
+      });
     });
   }
   /* Каждый лист отчёта — ровно страница A4. Снимаем с копии фиксированной
@@ -1270,6 +1414,13 @@ int main(void) {
       }
     } finally {
       holder.remove();
+    }
+    // номера страниц — настоящим текстом, титул без номера
+    for (let p = 2; p <= pdf.getNumberOfPages(); p++) {
+      pdf.setPage(p);
+      pdf.setFont("times", "normal");
+      pdf.setFontSize(10);
+      pdf.text(String(p), 195, 291, { align: "right" });
     }
     return { blob: pdf.output("blob"), pages: pdf.getNumberOfPages() };
   }
@@ -1349,6 +1500,24 @@ int main(void) {
     setTimeout(() => window.print(), 60);
   };
 
+  /* ---------------- гайд «Как собрать отчёт» ---------------- */
+  const helpOv = $("#help-ov");
+  function openHelp() {
+    $("#help-never").checked = localStorage.getItem("labpad.helpHidden") === "1";
+    helpOv.hidden = false;
+    $("#help-ok").focus();
+  }
+  const closeHelp = () => { helpOv.hidden = true; };
+  $("#help").onclick = openHelp;
+  $("#help-x").onclick = closeHelp;
+  $("#help-ok").onclick = closeHelp;
+  helpOv.addEventListener("click", (e) => { if (e.target === helpOv) closeHelp(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !helpOv.hidden) closeHelp(); });
+  $("#help-never").onchange = (e) => {
+    if (e.target.checked) localStorage.setItem("labpad.helpHidden", "1");
+    else localStorage.removeItem("labpad.helpHidden");
+  };
+
   /* ---------------- параметры схем ---------------- */
   function syncOptUI() {
     const o = state.opt;
@@ -1402,6 +1571,9 @@ int main(void) {
       })
       .catch((e) => { $("#msg").textContent = "проект не загрузился: " + e.message; });
   }
+
+  /* первый визит с пустым проектом — один раз показываем гайд */
+  if (!projectUrl && !state.tasks.length && localStorage.getItem("labpad.helpHidden") !== "1") openHelp();
 </script>
 </body>
 </html>
