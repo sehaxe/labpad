@@ -1317,7 +1317,7 @@ int main(void) {
       const need = goal - top(el);
       if (need < 0.5) return;
       spacer.style.height = `${need}px`;
-      for (let k = 0; k < 3; k++) {
+      for (let k = 0; k < 8; k++) {
         const off = top(el) - goal;
         if (Math.abs(off) < 0.5) break;
         const next = parseFloat(spacer.style.height) - off;
@@ -1467,12 +1467,74 @@ int main(void) {
         const fig = here[0].el;
         if (!fig.classList.contains("fig") || high(fig) < 40) return;
         const rest = to - top(fig);
-        if (rest < high(fig) + 20) return;
-        const box = document.createElement("div");
-        box.style.cssText = `height:${Math.round(rest)}px;display:flex;flex-direction:column;justify-content:center`;
-        fig.before(box);
-        box.append(fig);
+        if (rest < high(fig) + 44) return;   // запас на подпись и отступы
+        // отступом, а не коробкой: коробка с фиксированной высотой обрезала
+        // схему, если та оказывалась выше неё
+        fig.style.marginTop = `${Math.round((rest - high(fig)) / 2)}px`;
       });
+    }
+    /* Финальная гарантия: ни один видимый блок не режется границей листа.
+       Эвристики выше расставляют по местам, но если что-то всё же легло
+       поперёк страницы (схема выше листа, блок, выросший после снимка) —
+       здесь это ловится и правится, а не уезжает в PDF разрезанным. */
+    function ensureInPages() {
+      // схема выше листа не влезет никуда: ужимаем её по пропорции
+      clone.querySelectorAll(".task .fig").forEach((fig) => {
+        if (high(fig) <= room - 24) return;
+        const pic = fig.querySelector("svg, img");
+        if (!pic) return;
+        const cap = high(fig) - high(pic);
+        const target = Math.max(80, room - 32 - cap);
+        const r = pic.getBoundingClientRect();
+        if (r.height > target) {
+          pic.style.width = `${Math.round((r.width * target) / r.height)}px`;
+          pic.style.height = `${target}px`;
+        }
+      });
+      // всё, что легло поперёк границы, переезжает на верх следующего листа
+      for (let pass = 0; pass < 8; pass++) {
+        let moved = false;
+        [...clone.querySelectorAll(".task .taskhead, .task .blk, .task .fig")].forEach((el) => {
+          if (el.dataset.blk === "scheme" || !high(el)) return;
+          if (el.closest(".pagebox") && !el.closest('[data-center]')) return;
+          const a = top(el), b = a + high(el);
+          if (b <= endOf(pageOf(a)) + 2) return;
+          if (high(el) > room) return;          // выше листа — уже ужат
+          // отступ центрирования снимаем: он и держал блок поперёк границы
+          if (el.style.marginTop) el.style.marginTop = "";
+          toPageStart(el);
+          moved = true;
+        });
+        if (!moved) break;
+      }
+    }
+    /* Подтягивание вверх: если блок стоит на верхушке листа только из-за
+       распорки, а на предыдущем листе для него есть место — снимаем распорку.
+       Так уходят листы, где сверху висит одна схема или заголовок, а снизу
+       предыдущего листа зияет пустота. */
+    function compactPages() {
+      for (let pass = 0; pass < 4; pass++) {
+        let changed = false;
+        const els = [...clone.querySelectorAll(".task .taskhead, .task .blk, .task .fig")]
+          .filter((el) => el.__spacer && el.dataset.blk !== "scheme" && high(el) > 0 && !el.closest(".pagebox"));
+        for (const el of els) {
+          const k = pageOf(top(el));
+          if (k === 0 || !atPage(top(el))) continue;
+          const sp = el.__spacer;
+          const had = parseFloat(sp.style.height) || 0;
+          if (had < 1) continue;
+          const h = high(el);
+          sp.style.height = "0px";
+          // влез ли целиком на предыдущий лист и не лёг поперёк границы
+          const a = top(el), b = a + h;
+          if (pageOf(a) === k - 1 && b <= endOf(k - 1) + 2) {
+            changed = true;
+          } else {
+            sp.style.height = `${had}px`;
+          }
+        }
+        if (!changed) break;
+      }
     }
     /* Раскладка одним проходом сверху вниз: каждый элемент встаёт на своё
        место, всё, что выше, уже окончательно, а всё, что ниже, ещё не
@@ -1497,7 +1559,10 @@ int main(void) {
       if (kind === "scheme") return layoutScheme(el);
       if (crosses(top(el), top(el) + high(el)) && !atPage(top(el))) toPageStart(el);
     });
-    centerLonelyFigs();
+    ensureInPages();
+    compactPages();
+    // последняя проверка: ничего не режется границей листа
+    ensureInPages();
   }
   /* Снимок выше предела canvas (Chrome 65535 px, Firefox 32767 px, плюс
      потолок по площади) приходит пустым и без ошибки — в PDF уезжают
