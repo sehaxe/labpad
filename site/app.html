@@ -1332,119 +1332,142 @@ int main(void) {
        остаток текущей страницы, каждая следующая начинается с новой — и ни
        одна не выходит за поля. Правим копию: в документе код остаётся одним
        блоком. */
-    function paginateCode() {
-      clone.querySelectorAll('.blk[data-blk="code"]').forEach((blk) => {
-        const box = blk.querySelector(".code");
-        if (!box || box.hidden || !box.textContent.trim()) return;
-        if (high(blk) <= room) return;              // влезает в страницу целиком
-        blk.dataset.split = "0";
-        const lines = box.textContent.split("\n");
-        let host = box;
-        let cont = null;
-        // сколько строк влезает в высоту avail — бинарным поиском по высоте:
-        // длинные строки переносятся, по символам перевода строки не посчитать
-        const fits = (rest, avail) => {
-          let lo = 1, hi = rest.length, best = 1;
-          while (lo <= hi) {
-            const mid = (lo + hi) >> 1;
-            host.textContent = rest.slice(0, mid).join("\n");
-            if (host.getBoundingClientRect().height <= avail) { best = mid; lo = mid + 1; }
-            else hi = mid - 1;
+    function splitCode(blk) {
+      const box = blk.querySelector(".code");
+      if (!box || box.hidden || !box.textContent.trim()) return;
+      const total = high(blk);
+      if (total <= room) {                      // влезает в страницу целиком
+        if (crosses(top(blk), top(blk) + total) && !atPage(top(blk))) toPageStart(blk);
+        return;
+      }
+      blk.dataset.split = "0";
+      const lines = box.textContent.split("\n");
+      // на остаток страницы лезет меньше половины листа — начинаем с новой:
+      // иначе перед листингом висит лист с заголовком и парой строк
+      let firstFree = endOf(pageOf(top(box))) - top(box);
+      if (firstFree < room * 0.5) {
+        toPageStart(blk);
+        firstFree = endOf(pageOf(top(box))) - top(box);
+      }
+      let host = box;
+      let holder = blk;
+      // сколько строк влезает в высоту avail — бинарным поиском по высоте:
+      // длинные строки переносятся, по символам перевода строки не посчитать
+      const fits = (rest, avail) => {
+        let lo = 1, hi = rest.length, best = 1;
+        while (lo <= hi) {
+          const mid = (lo + hi) >> 1;
+          host.textContent = rest.slice(0, mid).join("\n");
+          if (host.getBoundingClientRect().height <= avail) { best = mid; lo = mid + 1; }
+          else hi = mid - 1;
+        }
+        return best;
+      };
+      const chunks = [];
+      let rest = lines;
+      for (;;) {
+        // заголовок и кнопки блока съедают верх страницы — их вычитаем
+        const chrome = high(holder) - high(host);
+        const free = chunks.length ? room : firstFree;
+        const n = Math.max(1, fits(rest, Math.max(free - chrome - 2, 40)));
+        const part = rest.slice(0, n);
+        rest = rest.slice(n);
+        host.textContent = part.join("\n");
+        chunks.push({ host, holder, count: part.length });
+        if (!rest.length) break;
+        const cont = document.createElement("div");
+        cont.className = "blk";
+        cont.dataset.blk = "code";
+        cont.dataset.split = "1";
+        const next = document.createElement("div");
+        next.className = "code";
+        cont.append(next);
+        holder.after(cont);
+        toPageStart(cont);        // каждая часть — с новой страницы
+        holder = cont;
+        host = next;
+      }
+      // короткий хвост не висит один на листе: делим последние две части
+      // поровну — обе части одного листинга, ширины и стили одинаковые
+      if (chunks.length > 1) {
+        const last = chunks[chunks.length - 1];
+        const prev = chunks[chunks.length - 2];
+        if (last.count * 2 < prev.count) {
+          const chromeLast = high(last.holder) - high(last.host);
+          const availLast = room - chromeLast - 2;
+          const lastLines = last.host.textContent.split("\n");
+          const prevLines = prev.host.textContent.split("\n");
+          let move = Math.round((prev.count - last.count) / 2);
+          const fitsIn = (m) => {
+            last.host.textContent = prevLines.slice(prevLines.length - m).concat(lastLines).join("\n");
+            return last.host.getBoundingClientRect().height <= availLast;
+          };
+          while (move > 0 && !fitsIn(move)) move--;
+          if (move > 0) {
+            prev.host.textContent = prevLines.slice(0, prevLines.length - move).join("\n");
+            last.host.textContent = prevLines.slice(prevLines.length - move).concat(lastLines).join("\n");
+          } else {
+            last.host.textContent = lastLines.join("\n");
           }
-          return best;
-        };
-        let rest = lines;
-        // на остаток страницы лезет меньше четверти листа — начинаем с новой:
-        // иначе перед листингом висит лист с заголовком и парой строк
-        let firstFree = endOf(pageOf(top(box))) - top(box);
-        if (firstFree < room * 0.5) {
-          toPageStart(blk);
-          firstFree = endOf(pageOf(top(box))) - top(box);
+          // части перестали быть равными прежним — хвост снова на свою страницу
+          toPageStart(last.holder);
         }
-        for (;;) {
-          const holder = cont || blk;
-          // заголовок и кнопки блока съедают верх страницы — их вычитаем
-          const chrome = high(holder) - high(host);
-          const free = cont ? room : firstFree;
-          const n = Math.max(1, fits(rest, Math.max(free - chrome - 2, 40)));
-          const part = rest.slice(0, n);
-          rest = rest.slice(n);
-          host.textContent = part.join("\n");
-          if (!rest.length) break;
-          cont = document.createElement("div");
-          cont.className = "blk";
-          cont.dataset.blk = "code";
-          cont.dataset.split = "1";
-          const next = document.createElement("div");
-          next.className = "code";
-          cont.append(next);
-          holder.after(cont);
-          toPageStart(cont);        // каждая часть — с новой страницы
-
-          host = next;
+      }
+    }
+    /* Большая схема — на свою страницу и по центру, мелкая — если влезает
+       в остаток; h3 едет вместе с первой схемой блока. */
+    function layoutScheme(blk) {
+      if (!high(blk)) return;
+      const h3 = blk.querySelector("h3");
+      const task = blk.closest(".task");
+      [...blk.querySelectorAll(".fig")].filter((f) => high(f)).forEach((fig, j) => {
+        fig.dataset.done = "1";
+        if (fig.parentElement.classList.contains("pagebox")) return;
+        const lead = j === 0 ? h3 : null;
+        const anchor = lead || fig;
+        if (high(fig) > pageH * 0.55) {
+          if (lead) lead.style.marginTop = "0";
+          fig.style.margin = "0";
+          toPageStart(anchor);
+          const box = document.createElement("div");
+          box.className = "pagebox";
+          // у схемы белое поле сверху чуть больше, чем у подписи снизу:
+          // 2.8 мм снизу = подъём красок на ~1.4 мм к центру страницы
+          box.style.cssText = `height:${room}px;display:flex;flex-direction:column;justify-content:center;padding-bottom:2.8mm;gap:2mm`;
+          anchor.before(box);
+          if (lead) box.append(lead);
+          box.append(fig);
+          // схема закрывает задание: нижний отступ иначе сдвинет следующее
+          // задание на 6 мм внутрь новой страницы
+          if (task) task.style.marginBottom = "0";
+        } else if (crosses(top(anchor), top(fig) + high(fig)) && !atPage(top(anchor))) {
+          toPageStart(anchor);
         }
       });
     }
-    /* расставляем блоки по страницам: блок целиком, схема — большая на свою
-       страницу и по центру, мелкая — если влезает в остаток */
-    function walk() {
-      // задание целиком не двигаем: заголовок уезжает вместе с описанием
-      // (см. правило для .blk ниже), а сдвиг всей статьи утащил бы уже
-      // выставленные части длинного листинга со своих страниц
-      [...clone.querySelectorAll(".task")].forEach((task) => {
-        // заголовок блока не остаётся внизу без своего содержимого
-        task.querySelectorAll(".blk").forEach((blk) => {
-          // описание уже выровнено до нарезки листингов: повторный сдвиг
-          // утащил бы нарезанные части со своих страниц
-          if (blk.dataset.blk === "scheme" || blk.dataset.blk === "desc" || !high(blk)) return;
-          if (!crosses(top(blk), top(blk) + high(blk))) return;
-          if (!atPage(top(blk))) toPageStart(blk);
-        });
-        task.querySelectorAll('.blk[data-blk="scheme"]').forEach((blk) => {
-          if (!high(blk)) return;
-          const h3 = blk.querySelector("h3");
-          [...blk.querySelectorAll(".fig")].filter((f) => high(f)).forEach((fig, j) => {
-            if (fig.parentElement.classList.contains("pagebox")) return;
-            const lead = j === 0 ? h3 : null;
-            const anchor = lead || fig;
-            if (high(fig) > pageH * 0.55) {
-              if (lead) lead.style.marginTop = "0";
-              fig.style.margin = "0";
-              toPageStart(anchor);
-              const box = document.createElement("div");
-              box.className = "pagebox";
-              // у схемы белое поле сверху чуть больше, чем у подписи снизу:
-              // 2.8 мм снизу = подъём красок на ~1.4 мм к центру страницы
-              box.style.cssText = `height:${room}px;display:flex;flex-direction:column;justify-content:center;padding-bottom:2.8mm;gap:2mm`;
-              anchor.before(box);
-              if (lead) box.append(lead);
-              box.append(fig);
-              // схема закрывает задание: нижний отступ иначе сдвинет
-              // следующее задание на 6 мм внутрь новой страницы
-              task.style.marginBottom = "0";
-            } else if (crosses(top(anchor), top(fig) + high(fig)) && !atPage(top(anchor))) {
-              toPageStart(anchor);
-            }
-          });
-        });
-      });
-    }
-    // 1) заголовок не отрывается от описания; 2) длинный листинг режется от
-    // уже выровненной позиции и встаёт на страницы сам; 3) остальные блоки и
-    // схемы. Два прохода walk() копят распорки и ломают разметку, поэтому он
-    // один и не трогает нарезанные части.
-    clone.querySelectorAll(".task").forEach((task) => {
-      task.querySelectorAll('.blk[data-blk="desc"]').forEach((blk) => {
-        if (!high(blk) || !crosses(top(blk), top(blk) + high(blk))) return;
-        const lead = task.querySelector(".taskhead");
-        if (lead && !atPage(top(lead))) toPageStart(lead);
-      });
+    /* Раскладка одним проходом сверху вниз: каждый элемент встаёт на своё
+       место, всё, что выше, уже окончательно, а всё, что ниже, ещё не
+       разложено — поэтому сдвиги не рассыпают готовое. */
+    [...clone.querySelectorAll(".taskhead, .blk, .fig")].forEach((el) => {
+      if (!el.isConnected || !high(el)) return;
+      if (el.classList.contains("taskhead")) return;   // едет вместе с описанием
+      if (el.classList.contains("fig")) {
+        if (el.dataset.done) return;
+        if (crosses(top(el), top(el) + high(el)) && !atPage(top(el))) toPageStart(el);
+        return;
+      }
+      const kind = el.dataset.blk;
+      if (kind === "desc") {
+        // заголовок задания не остаётся на листе без своего описания
+        const prev = el.previousElementSibling;
+        const lead = prev && prev.classList.contains("taskhead") ? prev : el;
+        if (crosses(top(lead), top(el) + high(el)) && !atPage(top(lead))) toPageStart(lead);
+        return;
+      }
+      if (kind === "code") return splitCode(el);
+      if (kind === "scheme") return layoutScheme(el);
+      if (crosses(top(el), top(el) + high(el)) && !atPage(top(el))) toPageStart(el);
     });
-    paginateCode();
-    walk();
-    // повторный проход: нарезка сдвинула всё, что идёт после листингов;
-    // распорки теперь переиспользуются, поэтому проход сходится, а не копит
-    walk();
   }
   /* Снимок выше предела canvas (Chrome 65535 px, Firefox 32767 px, плюс
      потолок по площади) приходит пустым и без ошибки — в PDF уезжают
