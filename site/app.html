@@ -1262,29 +1262,17 @@ int main(void) {
      снимка × 297/210. Границу сдвигаем вверх до ближайшей белой строки
      (не больше ~6 мм), чтобы не разрезать строку текста; вниз нельзя —
      полоса выше A4 не влезет. Пустые хвосты отбрасываем. */
-  function pageSlices(canvas) {
+  function pageSlices(canvas, pages = 0) {
     const ctx = canvas.getContext("2d");
-    const w = canvas.width, h = canvas.height;
+    const w = canvas.width;
     const pageH = Math.round((w * 297) / 210);
-    const slack = Math.round(pageH * 0.02);
-    const blank = (y) => {
-      const d = ctx.getImageData(0, y, w, 1).data;
-      for (let i = 0; i < d.length; i += 4) {
-        if (d[i] < 240 || d[i + 1] < 240 || d[i + 2] < 240) return false;
-      }
-      return true;
-    };
+    // полоса снята ровно на `pages` страниц: всё, что ниже, — наложение на
+    // следующую полосу, а не отдельная страница (иначе в PDF уезжает пустая
+    // A4 с обрезком строки сверху)
+    const h = pages ? Math.min(canvas.height, pages * pageH) : canvas.height;
     const slices = [];
-    for (let y = 0; y < h; ) {
-      let end = Math.min(h, y + pageH);
-      if (end < h) {
-        for (let d = 0; d < slack && end > y + 1; d++) {
-          if (blank(end - d)) { end -= d; break; }
-        }
-      }
-      slices.push([y, end]);
-      y = end;
-    }
+    for (let y = 0; y < h; y += pageH) slices.push([y, Math.min(h, y + pageH)]);
+    // пустые хвосты отбрасываем
     while (slices.length > 1) {
       const [y0, y1] = slices[slices.length - 1];
       const d = ctx.getImageData(0, y0, w, y1 - y0).data;
@@ -1302,7 +1290,7 @@ int main(void) {
      оно идёт сразу после цели); схема и скрин кода не разрезаются пополам.
      Позиции читаем после каждого сдвига: следующий блок видит новый отступ. */
   function alignPages(clone) {
-    const pageH = (clone.clientWidth * 297) / 210;
+    const pageH = (clone.getBoundingClientRect().width * 297) / 210;
     const root = clone.getBoundingClientRect().top;
     const top = (el) => el.getBoundingClientRect().top - root;
     const high = (el) => el.getBoundingClientRect().height;
@@ -1431,14 +1419,17 @@ int main(void) {
         holder.append(clone);
         await Promise.all([...clone.querySelectorAll("img")].map((im) => im.decode?.().catch(() => {})));
         alignPages(clone);
-        const pageCss = (clone.clientWidth * 297) / 210;
+        // ширину берём дробной: clientWidth округляет 210 мм до 794 px, и
+        // сетка страниц разъезжается с холстом на пол-пикселя за страницу
+        const pageCss = (clone.getBoundingClientRect().width * 297) / 210;
         const pages = Math.max(1, Math.ceil((clone.scrollHeight - 2) / pageCss));
         const per = Math.max(1, Math.floor(BAND_CSS / pageCss));
         for (let p0 = 0; p0 < pages; p0 += per) {
-          const canvas = await shootBand(clone, holder, p0, Math.min(per, pages - p0), pageCss);
+          const count = Math.min(per, pages - p0);
+          const canvas = await shootBand(clone, holder, p0, count, pageCss);
           // пустой снимок — не повод отдавать чёрные страницы
           if (deadShot(canvas)) throw new Error("браузер не смог отрисовать лист " + (i + 1) + " — закрой лишние вкладки и попробуй ещё раз");
-          for (const [y0, y1] of pageSlices(canvas)) {
+          for (const [y0, y1] of pageSlices(canvas, count)) {
             const part = document.createElement("canvas");
             part.width = canvas.width;
             part.height = y1 - y0;
