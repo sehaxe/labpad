@@ -1320,7 +1320,11 @@ int main(void) {
       for (let k = 0; k < 3; k++) {
         const off = top(el) - goal;
         if (Math.abs(off) < 0.5) break;
-        spacer.style.height = `${parseFloat(spacer.style.height) - off}px`;
+        const next = parseFloat(spacer.style.height) - off;
+        // отрицательная распорка утащила бы элемент выше листа, и он лёг бы
+        // поперёк границы страниц — прижимаемся к нулю
+        if (next <= 0.5) { spacer.style.height = "0px"; break; }
+        spacer.style.height = `${next}px`;
       }
     }
     // скрин кода выше страницы не удержать целиком — ужимаем по пропорции
@@ -1342,10 +1346,10 @@ int main(void) {
       }
       blk.dataset.split = "0";
       const lines = box.textContent.split("\n");
-      // на остаток страницы лезет меньше половины листа — начинаем с новой:
-      // иначе перед листингом висит лист с заголовком и парой строк
+      // листинг длиннее листа: начинаем с чистой страницы только если от
+      // листа остался огрызок, иначе первая часть влезает в остаток
       let firstFree = endOf(pageOf(top(box))) - top(box);
-      if (firstFree < room * 0.5) {
+      if (firstFree < room * 0.45) {
         toPageStart(blk);
         firstFree = endOf(pageOf(top(box))) - top(box);
       }
@@ -1369,7 +1373,15 @@ int main(void) {
         // заголовок и кнопки блока съедают верх страницы — их вычитаем
         const chrome = high(holder) - high(host);
         const free = chunks.length ? room : firstFree;
-        const n = Math.max(1, fits(rest, Math.max(free - chrome - 2, 40)));
+        let n = Math.max(1, fits(rest, Math.max(free - chrome - 2, 40)));
+        // бинарный поиск меряет только текст, а у блока ещё отступы и рамка:
+        // подрезаем, пока часть не влезет в лист целиком
+        // низ блока не должен уйти за поле листа: шагаем по строке, пока не влезет
+        for (let guard = 0; guard < 24 && n > 1; guard++) {
+          host.textContent = rest.slice(0, n).join("\n");
+          if (top(holder) + high(holder) <= endOf(pageOf(top(holder))) - 1) break;
+          n -= 1;
+        }
         const part = rest.slice(0, n);
         rest = rest.slice(n);
         host.textContent = part.join("\n");
@@ -1414,35 +1426,52 @@ int main(void) {
         }
       }
     }
-    /* Большая схема — на свою страницу и по центру, мелкая — если влезает
-       в остаток; h3 едет вместе с первой схемой блока. */
+    /* Схема, которая не влезает в остаток листа, начинается со следующей
+       страницы — без коробки на весь лист: иначе после неё остаётся 150 мм
+       пустоты, а следующее задание уезжает на новый лист. Первая схема блока
+       увозит с собой свой h3. */
     function layoutScheme(blk) {
       if (!high(blk)) return;
       const h3 = blk.querySelector("h3");
-      const task = blk.closest(".task");
       [...blk.querySelectorAll(".fig")].filter((f) => high(f)).forEach((fig, j) => {
         fig.dataset.done = "1";
-        if (fig.parentElement.classList.contains("pagebox")) return;
+        // схема выше листа не влезет ни на одну страницу — ужимаем по пропорции
+        const pic = fig.querySelector("svg, img");
+        if (pic && high(fig) > room * 0.95) {
+          const r = pic.getBoundingClientRect();
+          const target = Math.round(room * 0.9);
+          if (r.height > target) {
+            pic.style.width = `${Math.round((r.width * target) / r.height)}px`;
+            pic.style.height = `${target}px`;
+          }
+        }
         const lead = j === 0 ? h3 : null;
         const anchor = lead || fig;
-        if (high(fig) > pageH * 0.55) {
-          if (lead) lead.style.marginTop = "0";
-          fig.style.margin = "0";
-          toPageStart(anchor);
-          const box = document.createElement("div");
-          box.className = "pagebox";
-          // у схемы белое поле сверху чуть больше, чем у подписи снизу:
-          // 2.8 мм снизу = подъём красок на ~1.4 мм к центру страницы
-          box.style.cssText = `height:${room}px;display:flex;flex-direction:column;justify-content:center;padding-bottom:2.8mm;gap:2mm`;
-          anchor.before(box);
-          if (lead) box.append(lead);
-          box.append(fig);
-          // схема закрывает задание: нижний отступ иначе сдвинет следующее
-          // задание на 6 мм внутрь новой страницы
-          if (task) task.style.marginBottom = "0";
-        } else if (crosses(top(anchor), top(fig) + high(fig)) && !atPage(top(anchor))) {
-          toPageStart(anchor);
-        }
+        if (crosses(top(anchor), top(fig) + high(fig)) && !atPage(top(anchor))) toPageStart(anchor);
+      });
+    }
+    /* Схема, которой достался целый лист (рядом ничего нет), встаёт по его
+       центру: иначе она висит у верхнего края, а под ней дыра на пол-листа.
+       Соседние блоки не трогаем — центрируем только одиночную схему. */
+    function centerLonelyFigs() {
+      const blocks = [
+        ...clone.querySelectorAll(".task .fig"),
+        ...[...clone.querySelectorAll(".task .blk")].filter((b) => !b.querySelector(".fig")),
+      ];
+      const rows = blocks.map((el) => ({ el, a: top(el), b: top(el) + high(el) }));
+      const pages = new Set(rows.map((r) => pageOf(r.a)));
+      pages.forEach((k) => {
+        const from = startOf(k), to = endOf(k);
+        const here = rows.filter((r) => r.b > from + 2 && r.a < to - 2);
+        if (here.length !== 1) return;
+        const fig = here[0].el;
+        if (!fig.classList.contains("fig") || high(fig) < 40) return;
+        const rest = to - top(fig);
+        if (rest < high(fig) + 20) return;
+        const box = document.createElement("div");
+        box.style.cssText = `height:${Math.round(rest)}px;display:flex;flex-direction:column;justify-content:center`;
+        fig.before(box);
+        box.append(fig);
       });
     }
     /* Раскладка одним проходом сверху вниз: каждый элемент встаёт на своё
@@ -1468,12 +1497,34 @@ int main(void) {
       if (kind === "scheme") return layoutScheme(el);
       if (crosses(top(el), top(el) + high(el)) && !atPage(top(el))) toPageStart(el);
     });
+    centerLonelyFigs();
   }
   /* Снимок выше предела canvas (Chrome 65535 px, Firefox 32767 px, плюс
      потолок по площади) приходит пустым и без ошибки — в PDF уезжают
      чёрные страницы (так и вышло: 31 лист из 32). Поэтому лист снимаем
      полосами по несколько страниц: у каждой полосы своя небольшая площадь,
      а страницы режутся тем же шагом — склейка не нужна. */
+  /* html2canvas сериализует SVG по его атрибутам width/height, а схема
+     масштабирована CSS-шириной в pt. Из-за этого на снимке схема выходила
+     меньше своего места в разметке — и под ней оставалось по 150-200 мм
+     пустоты. Вписываем фактический размер в атрибуты: тогда снимок совпадает
+     с раскладкой. */
+  function bakeSvg(clone) {
+    clone.querySelectorAll("svg").forEach((s) => {
+      const r = s.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) return;
+      if (!s.getAttribute("viewBox")) {
+        const w = parseFloat(s.getAttribute("width"));
+        const h = parseFloat(s.getAttribute("height"));
+        if (w > 0 && h > 0) s.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      }
+      const w = Math.round(r.width), h = Math.round(r.height);
+      s.setAttribute("width", String(w));
+      s.setAttribute("height", String(h));
+      s.style.width = `${w}px`;
+      s.style.height = `${h}px`;
+    });
+  }
   const BAND_CSS = 7000;
   function bandBox(clone, holder, from, count, pageCss) {
     const wrap = document.createElement("div");
@@ -1530,6 +1581,7 @@ int main(void) {
         holder.append(clone);
         await Promise.all([...clone.querySelectorAll("img")].map((im) => im.decode?.().catch(() => {})));
         alignPages(clone);
+        bakeSvg(clone);
         // ширину берём дробной: clientWidth округляет 210 мм до 794 px, и
         // сетка страниц разъезжается с холстом на пол-пикселя за страницу
         const pageCss = (clone.getBoundingClientRect().width * 297) / 210;
