@@ -1370,6 +1370,42 @@ int main(void) {
       });
     });
   }
+  /* Снимок выше предела canvas (Chrome 65535 px, Firefox 32767 px, плюс
+     потолок по площади) приходит пустым и без ошибки — в PDF уезжают
+     чёрные страницы (так и вышло: 31 лист из 32). Поэтому лист снимаем
+     полосами по несколько страниц: у каждой полосы своя небольшая площадь,
+     а страницы режутся тем же шагом — склейка не нужна. */
+  const BAND_CSS = 7000;
+  function bandBox(clone, holder, from, count, pageCss) {
+    const wrap = document.createElement("div");
+    wrap.style.cssText = `position:relative;width:210mm;overflow:hidden;background:#fff;height:${Math.round(count * pageCss)}px`;
+    const shift = document.createElement("div");
+    shift.style.marginTop = `-${Math.round(from * pageCss)}px`;
+    shift.append(clone);
+    wrap.append(shift);
+    holder.append(wrap);
+    return wrap;
+  }
+  async function shootBand(clone, holder, from, count, pageCss) {
+    const wrap = bandBox(clone, holder, from, count, pageCss);
+    try {
+      return await window.html2canvas(wrap, {
+        scale: 2.4,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        logging: false,
+      });
+    } finally {
+      wrap.remove();
+    }
+  }
+  /* Поле листа белое, поэтому целиком чёрная строка = снимок не состоялся. */
+  function deadShot(canvas) {
+    const d = canvas.getContext("2d").getImageData(0, 0, canvas.width, 1).data;
+    for (let i = 0; i < d.length; i += 4) if (d[i] > 24 || d[i + 1] > 24 || d[i + 2] > 24) return false;
+    return true;
+  }
+
   /* Каждый лист отчёта — ровно страница A4. Снимаем с копии фиксированной
      ширины 210 мм: на узком экране сам лист ужимается, и текст переносится
      иначе, чем на печати. Высокий лист режется на страницы по высоте, а не
@@ -1395,22 +1431,28 @@ int main(void) {
         holder.append(clone);
         await Promise.all([...clone.querySelectorAll("img")].map((im) => im.decode?.().catch(() => {})));
         alignPages(clone);
-        const canvas = await window.html2canvas(clone, {
-          scale: 2.4,
-          backgroundColor: "#ffffff",
-          useCORS: true,
-          logging: false,
-        });
-        clone.remove();
-        for (const [y0, y1] of pageSlices(canvas)) {
-          const part = document.createElement("canvas");
-          part.width = canvas.width;
-          part.height = y1 - y0;
-          part.getContext("2d").drawImage(canvas, 0, y0, canvas.width, part.height, 0, 0, canvas.width, part.height);
-          if (!first) pdf.addPage();
-          first = false;
-          pdf.addImage(part.toDataURL("image/jpeg", 0.94), "JPEG", 0, 0, 210, (part.height * 210) / canvas.width, undefined, "FAST");
+        const pageCss = (clone.clientWidth * 297) / 210;
+        const pages = Math.max(1, Math.ceil((clone.scrollHeight - 2) / pageCss));
+        const per = Math.max(1, Math.floor(BAND_CSS / pageCss));
+        for (let p0 = 0; p0 < pages; p0 += per) {
+          const canvas = await shootBand(clone, holder, p0, Math.min(per, pages - p0), pageCss);
+          // пустой снимок — не повод отдавать чёрные страницы
+          if (deadShot(canvas)) throw new Error("браузер не смог отрисовать лист " + (i + 1) + " — закрой лишние вкладки и попробуй ещё раз");
+          for (const [y0, y1] of pageSlices(canvas)) {
+            const part = document.createElement("canvas");
+            part.width = canvas.width;
+            part.height = y1 - y0;
+            const g = part.getContext("2d");
+            // белая подложка: прозрачный снимок иначе уедет в JPEG чёрным
+            g.fillStyle = "#ffffff";
+            g.fillRect(0, 0, part.width, part.height);
+            g.drawImage(canvas, 0, y0, canvas.width, part.height, 0, 0, canvas.width, part.height);
+            if (!first) pdf.addPage();
+            first = false;
+            pdf.addImage(part.toDataURL("image/jpeg", 0.94), "JPEG", 0, 0, 210, (part.height * 210) / canvas.width, undefined, "FAST");
+          }
         }
+        clone.remove();
       }
     } finally {
       holder.remove();
