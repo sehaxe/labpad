@@ -1304,12 +1304,20 @@ int main(void) {
     /* ставим элемент на верх страницы; отступ-распорку потом подправляем —
        маргины и дробные пиксели иначе съедают пару мм */
     function toPageStart(el) {
+      // распорка живёт на самом элементе: повторный проход правит её же, а не
+      // копит новые — иначе за сдвинутым элементом остаются пустые страницы
+      let spacer = el.__spacer;
+      if (!spacer || !spacer.isConnected) {
+        spacer = document.createElement("div");
+        el.__spacer = spacer;
+        el.before(spacer);
+      }
+      spacer.style.height = "0px";
       const goal = atPage(top(el)) ? startOf(pageOf(top(el))) : startOf(pageOf(top(el)) + 1);
-      if (goal - top(el) < 0.5) return;
-      const spacer = document.createElement("div");
-      spacer.style.height = `${goal - top(el)}px`;
-      el.before(spacer);
-      for (let k = 0; k < 2; k++) {
+      const need = goal - top(el);
+      if (need < 0.5) return;
+      spacer.style.height = `${need}px`;
+      for (let k = 0; k < 3; k++) {
         const off = top(el) - goal;
         if (Math.abs(off) < 0.5) break;
         spacer.style.height = `${parseFloat(spacer.style.height) - off}px`;
@@ -1329,6 +1337,7 @@ int main(void) {
         const box = blk.querySelector(".code");
         if (!box || box.hidden || !box.textContent.trim()) return;
         if (high(blk) <= room) return;              // влезает в страницу целиком
+        blk.dataset.split = "0";
         const lines = box.textContent.split("\n");
         let host = box;
         let cont = null;
@@ -1345,11 +1354,18 @@ int main(void) {
           return best;
         };
         let rest = lines;
+        // на остаток страницы лезет меньше четверти листа — начинаем с новой:
+        // иначе перед листингом висит лист с заголовком и парой строк
+        let firstFree = endOf(pageOf(top(box))) - top(box);
+        if (firstFree < room * 0.5) {
+          toPageStart(blk);
+          firstFree = endOf(pageOf(top(box))) - top(box);
+        }
         for (;;) {
           const holder = cont || blk;
           // заголовок и кнопки блока съедают верх страницы — их вычитаем
           const chrome = high(holder) - high(host);
-          const free = cont ? room : endOf(pageOf(top(box))) - top(box);
+          const free = cont ? room : firstFree;
           const n = Math.max(1, fits(rest, Math.max(free - chrome - 2, 40)));
           const part = rest.slice(0, n);
           rest = rest.slice(n);
@@ -1362,7 +1378,9 @@ int main(void) {
           const next = document.createElement("div");
           next.className = "code";
           cont.append(next);
-          holder.after(cont);       // на страницы части разведёт walk()
+          holder.after(cont);
+          toPageStart(cont);        // каждая часть — с новой страницы
+
           host = next;
         }
       });
@@ -1376,10 +1394,11 @@ int main(void) {
       [...clone.querySelectorAll(".task")].forEach((task) => {
         // заголовок блока не остаётся внизу без своего содержимого
         task.querySelectorAll(".blk").forEach((blk) => {
-          if (blk.dataset.blk === "scheme" || !high(blk)) return;
+          // описание уже выровнено до нарезки листингов: повторный сдвиг
+          // утащил бы нарезанные части со своих страниц
+          if (blk.dataset.blk === "scheme" || blk.dataset.blk === "desc" || !high(blk)) return;
           if (!crosses(top(blk), top(blk) + high(blk))) return;
-          const lead = blk.dataset.blk === "desc" ? task.querySelector(".taskhead") : blk;
-          if (!atPage(top(lead))) toPageStart(lead);
+          if (!atPage(top(blk))) toPageStart(blk);
         });
         task.querySelectorAll('.blk[data-blk="scheme"]').forEach((blk) => {
           if (!high(blk)) return;
@@ -1410,9 +1429,21 @@ int main(void) {
         });
       });
     }
-    // сначала режем листинги от их естественных позиций (первая часть
-    // занимает остаток страницы), потом разводим блоки и схемы по страницам
+    // 1) заголовок не отрывается от описания; 2) длинный листинг режется от
+    // уже выровненной позиции и встаёт на страницы сам; 3) остальные блоки и
+    // схемы. Два прохода walk() копят распорки и ломают разметку, поэтому он
+    // один и не трогает нарезанные части.
+    clone.querySelectorAll(".task").forEach((task) => {
+      task.querySelectorAll('.blk[data-blk="desc"]').forEach((blk) => {
+        if (!high(blk) || !crosses(top(blk), top(blk) + high(blk))) return;
+        const lead = task.querySelector(".taskhead");
+        if (lead && !atPage(top(lead))) toPageStart(lead);
+      });
+    });
     paginateCode();
+    walk();
+    // повторный проход: нарезка сдвинула всё, что идёт после листингов;
+    // распорки теперь переиспользуются, поэтому проход сходится, а не копит
     walk();
   }
   /* Снимок выше предела canvas (Chrome 65535 px, Firefox 32767 px, плюс
